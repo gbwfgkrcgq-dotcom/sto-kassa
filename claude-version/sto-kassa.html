@@ -864,14 +864,16 @@ input::placeholder{color:var(--fg2);opacity:.7}
   async function syncOnce(cfg){
     const sent = { orders: { ...dirty.orders }, expenses: { ...dirty.expenses } }, sentTomb = tomb.slice();
     const pick = kind => store[kind].get().filter(x => sent[kind][x.id] != null);
+    const idle = !sentTomb.length && !Object.keys(sent.orders).length && !Object.keys(sent.expenses).length;
     let res;
     try {
       res = await fetch(API, { method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ app: 'sto-kassa', password: cfg.password, orders: pick('orders'), expenses: pick('expenses'), deleted: sentTomb }) });
+        body: JSON.stringify({ app: 'sto-kassa', password: cfg.password, rev: idle ? LS.get('sto-rev', '') : '', orders: pick('orders'), expenses: pick('expenses'), deleted: sentTomb }) });
     } catch { throw { code: 'net' }; }
     let data = null; try { data = await res.json(); } catch {}
     if (res.status === 401) throw { code: 'auth' };
     if (data && (data.error === 'storage' || data.error === 'corrupt')) throw { code: 'storage' };
+    if (res.ok && data && data.ok && data.same){ LS.set('sto-sync-at', Date.now()); return false; }
     if (!res.ok || !data || !data.ok || !Array.isArray(data.orders) || !Array.isArray(data.expenses)) throw { code: 'net' };
     tomb = tomb.filter(t => !sentTomb.some(s => s.kind === t.kind && s.id === t.id && s.updatedAt === t.updatedAt));
     for (const kind of KINDS){
@@ -881,22 +883,25 @@ input::placeholder{color:var(--fg2);opacity:.7}
       const merged = data[kind].filter(x => x && typeof x.id === 'string' && !skip.has(x.id)).concat(keep);
       store[kind].set(merged); LS.set(store[kind].ls, merged);
     }
-    LS.set('sto-dirty', dirty); LS.set('sto-tomb', tomb); LS.set('sto-sync-at', Date.now());
+    LS.set('sto-dirty', dirty); LS.set('sto-tomb', tomb); LS.set('sto-sync-at', Date.now()); LS.set('sto-rev', typeof data.rev === 'string' ? data.rev : '');
+    return true;
   }
-  function queueSync(ms){ clearTimeout(syncTimer); syncTimer = setTimeout(() => syncNow(), ms == null ? 1500 : ms); }
+  function queueSync(ms){ clearTimeout(syncTimer); syncTimer = setTimeout(() => syncNow(), ms == null ? 700 : ms); }
   function markAllDirty(){
     for (const kind of KINDS) for (const x of store[kind].get()) dirty[kind][x.id] = x.updatedAt || 0;
     LS.set('sto-dirty', dirty);
   }
-  async function syncNow(){
-    clearTimeout(syncTimer);
+  async function syncNow(quiet){
+    if (!quiet) clearTimeout(syncTimer);
     if (!srv || mode !== 'local') return;
     if (syncState === 'busy'){ syncAgain = true; return; }
     if (navigator.onLine === false){ syncState = 'err'; syncErr = SYNC_MSG.offline; updateBackupUI(); return; }
-    syncState = 'busy'; updateBackupUI();
-    try { await syncOnce(srv); syncState = 'ok'; syncErr = ''; }
+    const was = syncState;
+    let changed = true;
+    syncState = 'busy'; if (!quiet) updateBackupUI();
+    try { changed = await syncOnce(srv); syncState = 'ok'; syncErr = ''; }
     catch (e) { syncState = 'err'; syncErr = SYNC_MSG[e && e.code] || SYNC_MSG.net; }
-    render();
+    if (changed || !quiet || syncState !== was) render();
     if (syncAgain){ syncAgain = false; queueSync(500); }
   }
   async function connectSync(){
@@ -907,7 +912,7 @@ input::placeholder{color:var(--fg2);opacity:.7}
     if (password.length < 6){ fail('Пароль должен быть не короче 6 символов.'); return; }
     btn.disabled = true; btn.textContent = 'Подключаем…';
     if (!srvInfo && !(await probeServer())){ fail('На этом адресе нет сервера для данных или нет интернета.'); return; }
-    srv = { password }; markAllDirty(); syncState = 'idle';
+    srv = { password }; markAllDirty(); syncState = 'idle'; LS.set('sto-rev', '');
     await syncNow();
     btn.disabled = false; btn.textContent = 'Подключить';
     if (syncState === 'ok'){ LS.set('sto-srv', srv); $('b-pass').value = ''; srvInfo = { ready: true }; toast('Синхронизация подключена'); }
@@ -916,7 +921,7 @@ input::placeholder{color:var(--fg2);opacity:.7}
   }
   function disconnectSync(){
     srv = null; syncState = 'idle'; dirty = { orders: {}, expenses: {} }; tomb = [];
-    LS.set('sto-srv', null); LS.set('sto-dirty', dirty); LS.set('sto-tomb', tomb);
+    LS.set('sto-srv', null); LS.set('sto-dirty', dirty); LS.set('sto-tomb', tomb); LS.set('sto-rev', '');
     render(); toast('Синхронизация отключена. Данные на устройстве остались');
   }
   $('b-connect').addEventListener('click', connectSync);
@@ -924,6 +929,9 @@ input::placeholder{color:var(--fg2);opacity:.7}
   $('b-disconnect').addEventListener('click', e => { if (armDelete(e.currentTarget, 'Отключить синхронизацию', 'Нажмите ещё раз, чтобы отключить')) disconnectSync(); });
   document.addEventListener('visibilitychange', () => { if (!document.hidden && srv) queueSync(400); });
   window.addEventListener('online', () => { if (srv) queueSync(400); });
+  window.addEventListener('focus', () => { if (srv) queueSync(200); });
+  // Пока приложение открыто, раз в 15 секунд спрашиваем сервер, не появилось ли новое с другого устройства.
+  setInterval(() => { if (srv && mode === 'local' && !document.hidden && syncState !== 'busy') syncNow(true); }, 15000);
   function startLocal(){
     mode = 'local';
     for (const k of Object.keys(store)){ const v = LS.get(store[k].ls, []); store[k].set(Array.isArray(v) ? v : []); }

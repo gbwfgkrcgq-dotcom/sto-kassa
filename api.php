@@ -131,5 +131,10 @@ if ($changed) {
     if (!write_guarded(STORE_FILE, $store)) out(500, array('ok' => false, 'error' => 'storage'));
 }
 
+// Отпечаток данных: если у приложения такой же и оно ничего не прислало, отвечаем коротко.
+$rev = is_file(STORE_FILE) ? md5_file(STORE_FILE) : 'empty';
+if (!is_string($rev)) $rev = '';
 flock($lock, LOCK_UN);
-out(200, array('ok' => true, 'orders' => $live['orders'], 'expenses' => $live['expenses']));
+$known = field($req, 'rev', '');
+if (!$changed && $rev !== '' && is_string($known) && $known === $rev) out(200, array('ok' => true, 'rev' => $rev, 'same' => true));
+out(200, array('ok' => true, 'rev' => $rev, 'orders' => $live['orders'], 'expenses' => $live['expenses']));
