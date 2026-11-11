@@ -1,0 +1,1258 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>СТО Касса</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="СТО Касса">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
+<link rel="manifest" href="manifest.json">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{height:100%}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<style>
+/* Layout: one phone-width column over a soft colour field; glass panels float on it, a glass tab bar is pinned to the bottom, forms slide up as a sheet. */
+:root{
+  --bg:#e9edf5;
+  --blob-a:#7db7ff; --blob-b:#ffc27a; --blob-c:#8fe3d0;
+  --glass:rgba(255,255,255,.52);
+  --glass-strong:rgba(255,255,255,.8);
+  --stroke:rgba(255,255,255,.85);
+  --edge:rgba(20,30,60,.08);
+  --shadow:0 12px 36px rgba(30,45,90,.14);
+  --fg:#0c0f16;
+  --fg2:rgba(22,28,46,.62);
+  --field:rgba(110,120,150,.14);
+  --accent:#0a6cff;
+  --on-accent:#ffffff;
+  --good:#12813c;
+  --bad:#cf1322;
+  --seg-cost:#8a93a8; --seg-mech:#5b6fd6; --seg-exp:#d98324;
+  --plate-bg:#ffffff; --plate-fg:#11131a; --plate-edge:#11131a;
+  --font:-apple-system,"SF Pro Text","SF Pro Display",BlinkMacSystemFont,"Inter","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --r-xl:30px; --r-l:22px; --r-m:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#06080d;
+    --blob-a:#143a8a; --blob-b:#7a3d10; --blob-c:#0e5a52;
+    --glass:rgba(44,50,70,.42);
+    --glass-strong:rgba(30,34,48,.86);
+    --stroke:rgba(255,255,255,.16);
+    --edge:rgba(255,255,255,.07);
+    --shadow:0 14px 40px rgba(0,0,0,.5);
+    --fg:#f5f6fa;
+    --fg2:rgba(232,236,250,.62);
+    --field:rgba(160,170,200,.16);
+    --accent:#3b8dff;
+    --on-accent:#ffffff;
+    --good:#34d16a;
+    --bad:#ff5a50;
+    --seg-cost:#7c869c; --seg-mech:#8795f0; --seg-exp:#f0a04a;
+    --plate-bg:#f3f4f6; --plate-fg:#11131a; --plate-edge:#f3f4f6;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#06080d;
+  --blob-a:#143a8a; --blob-b:#7a3d10; --blob-c:#0e5a52;
+  --glass:rgba(44,50,70,.42);
+  --glass-strong:rgba(30,34,48,.86);
+  --stroke:rgba(255,255,255,.16);
+  --edge:rgba(255,255,255,.07);
+  --shadow:0 14px 40px rgba(0,0,0,.5);
+  --fg:#f5f6fa;
+  --fg2:rgba(232,236,250,.62);
+  --field:rgba(160,170,200,.16);
+  --accent:#3b8dff;
+  --on-accent:#ffffff;
+  --good:#34d16a;
+  --bad:#ff5a50;
+  --seg-cost:#7c869c; --seg-mech:#8795f0; --seg-exp:#f0a04a;
+  --plate-bg:#f3f4f6; --plate-fg:#11131a; --plate-edge:#f3f4f6;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+html.locked{overflow:hidden}
+body{
+  background:var(--bg); color:var(--fg);
+  font-family:var(--font); font-size:16px; line-height:1.35;
+  -webkit-font-smoothing:antialiased;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-block:14px 132px;
+  min-height:100%;
+}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;padding:0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.field-bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.field-bg i{position:absolute;border-radius:50%;filter:blur(70px);opacity:.75}
+.field-bg i:nth-child(1){width:340px;height:340px;left:-90px;top:-70px;background:var(--blob-a)}
+.field-bg i:nth-child(2){width:300px;height:300px;right:-110px;top:210px;background:var(--blob-b)}
+.field-bg i:nth-child(3){width:360px;height:360px;left:10%;bottom:-140px;background:var(--blob-c)}
+
+.app{position:relative;z-index:1;max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.view{display:flex;flex-direction:column;gap:14px}
+.stack{display:flex;flex-direction:column;gap:8px}
+
+.glass{
+  background:var(--glass);
+  -webkit-backdrop-filter:blur(26px) saturate(180%);
+  backdrop-filter:blur(26px) saturate(180%);
+  border:1px solid var(--stroke);
+  box-shadow:var(--shadow), inset 0 1px 0 var(--stroke), inset 0 -1px 0 var(--edge);
+}
+
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding:6px 4px 0}
+.eyebrow{margin:0;font-size:13px;font-weight:600;color:var(--fg2);letter-spacing:.02em}
+h1{margin:0;font-size:32px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+.cur{appearance:none;-webkit-appearance:none;border-radius:999px;padding:8px 14px;font-weight:600;font-size:15px;text-align:center}
+
+.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;padding:3px;border-radius:999px}
+.seg button{padding:8px 4px;border-radius:999px;font-size:14px;font-weight:600;color:var(--fg2);transition:background .2s,color .2s}
+.seg button[aria-selected="true"]{background:var(--glass-strong);color:var(--fg);box-shadow:0 2px 8px var(--edge)}
+
+.card{border-radius:var(--r-xl);padding:20px;display:flex;flex-direction:column;gap:14px}
+.card h2{margin:0;font-size:17px;font-weight:700}
+.card .label{margin:0;font-size:14px;font-weight:600;color:var(--fg2)}
+.hero{margin:2px 0 0;font-size:44px;font-weight:700;letter-spacing:-.03em;line-height:1.05;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.hero.pos{color:var(--good)}
+.hero.neg{color:var(--bad)}
+.split{display:flex;gap:2px;height:8px;border-radius:99px;overflow:hidden;background:var(--field)}
+.split span{display:block;height:100%;min-width:0}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px 10px;margin:0}
+.stats div{min-width:0}
+.stats dt{font-size:12px;color:var(--fg2);font-weight:600;display:flex;align-items:center;gap:5px}
+.stats dt b{width:8px;height:8px;border-radius:50%;flex:none}
+.stats dd{margin:3px 0 0;font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+
+.search{display:flex;align-items:center;gap:8px;border-radius:999px;padding:0 14px;height:46px}
+.search svg{width:18px;height:18px;flex:none;color:var(--fg2)}
+.search input{flex:1;min-width:0;border:0;background:none;height:100%;font-size:16px;outline:none}
+.search button{color:var(--fg2);font-size:20px;width:28px;height:28px}
+
+.notice{border-radius:var(--r-m);padding:12px 14px;font-size:14px;color:var(--fg2)}
+.nudge{border-radius:var(--r-m);padding:12px 14px;font-size:14px;font-weight:600;text-align:left;color:var(--accent);width:100%}
+.head-actions{display:flex;align-items:center;gap:8px;flex:none}
+.iconbtn{height:38px;padding:0 12px;border-radius:999px;font-weight:600;font-size:14px;display:flex;align-items:center;gap:5px}
+.iconbtn svg{width:18px;height:18px}
+.btext{margin:0;font-size:15px;color:var(--fg2)}
+.btext b{color:var(--fg)}
+
+.day{margin:8px 6px 0;font-size:13px;font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.06em;display:flex;justify-content:space-between;gap:8px}
+.group{border-radius:var(--r-l);overflow:hidden}
+.row{display:flex;width:100%;align-items:center;gap:12px;padding:14px 16px;text-align:left}
+.row + .row{border-top:1px solid var(--edge)}
+.row:active{background:var(--field)}
+.row .main{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.row .car{font-size:17px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--fg2)}
+.row .sum{text-align:right;flex:none;font-variant-numeric:tabular-nums}
+.row .total{font-size:17px;font-weight:700}
+.row .gain{font-size:14px;font-weight:650;color:var(--good);margin-top:3px}
+.plate{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;font-weight:700;letter-spacing:.06em;background:var(--plate-bg);color:var(--plate-fg);border:1.5px solid var(--plate-edge);border-radius:5px;padding:1px 6px;white-space:nowrap}
+.pill{font-size:11px;font-weight:700;padding:2px 7px;border-radius:99px;background:var(--field);color:var(--fg2);text-transform:uppercase;letter-spacing:.05em}
+.empty{border-radius:var(--r-l);padding:28px 20px;text-align:center;color:var(--fg2);font-size:15px}
+.empty strong{display:block;color:var(--fg);font-size:17px;margin-bottom:6px}
+
+/* analytics */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{border-radius:var(--r-l);padding:14px 16px;min-width:0}
+.tile p{margin:0;font-size:12px;font-weight:600;color:var(--fg2)}
+.tile strong{display:block;margin-top:4px;font-size:22px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.chart{position:relative}
+.bars{display:flex;align-items:flex-end;gap:2px;height:120px;border-bottom:1px solid var(--edge)}
+.bars button{flex:1;min-width:0;height:100%;display:flex;align-items:flex-end}
+.bars button i{display:block;width:100%;background:var(--accent);border-radius:4px 4px 0 0;min-height:0;opacity:.85}
+.bars button.zero i{background:var(--field);height:2px!important}
+.bars button:hover i,.bars button:focus-visible i,.bars button.on i{opacity:1}
+.axis{display:flex;justify-content:space-between;font-size:11px;color:var(--fg2);margin-top:5px;font-variant-numeric:tabular-nums}
+.tip{font-size:13px;color:var(--fg2);min-height:18px;margin:0;font-variant-numeric:tabular-nums}
+.tip b{color:var(--fg)}
+.rank{display:flex;flex-direction:column;gap:12px;margin:0;padding:0;list-style:none}
+.rank li{display:flex;flex-direction:column;gap:5px;min-width:0}
+.rank .l{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.rank .n{font-weight:650;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rank .v{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.rank small{font-size:13px;color:var(--fg2)}
+.rank .track{height:5px;border-radius:9px;background:var(--field);overflow:hidden}
+.rank .track i{display:block;height:100%;border-radius:9px;background:var(--accent)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--fg2)}
+.legend span{display:flex;align-items:center;gap:5px}
+.legend b{width:8px;height:8px;border-radius:50%}
+.muted{color:var(--fg2);font-size:14px;margin:0}
+
+/* dock */
+.dock{position:fixed;z-index:5;left:0;right:0;bottom:0;
+  padding:10px max(16px, env(safe-area-inset-right, 0px)) calc(14px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  pointer-events:none}
+.dock-in{max-width:480px;margin:0 auto;display:flex;gap:10px;pointer-events:auto;align-items:center}
+.tabs{flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:4px;border-radius:999px;min-width:0}
+.tabs button{height:52px;border-radius:999px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px;font-weight:650;color:var(--fg2);min-width:0}
+.tabs button svg{width:22px;height:22px}
+.tabs button[aria-selected="true"]{background:var(--glass-strong);color:var(--accent)}
+.add{flex:none;width:60px;height:60px;border-radius:50%;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 26px rgba(10,108,255,.35), inset 0 1px 0 rgba(255,255,255,.35)}
+.add svg{width:26px;height:26px}
+.btn svg{width:22px;height:22px;flex:none}
+
+/* sheets */
+.scrim{position:fixed;inset:0;z-index:8;background:rgba(0,0,0,.32)}
+.sheet{position:fixed;z-index:9;left:0;right:0;bottom:0;max-height:94%;overflow-y:auto;overscroll-behavior:contain;
+  max-width:520px;margin:0 auto;border-radius:var(--r-xl) var(--r-xl) 0 0;
+  background:var(--glass-strong);
+  -webkit-backdrop-filter:blur(40px) saturate(180%);backdrop-filter:blur(40px) saturate(180%);
+  border:1px solid var(--stroke);border-bottom:0;box-shadow:0 -18px 50px rgba(0,0,0,.25);
+  padding:8px max(16px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  animation:up .28s cubic-bezier(.2,.9,.3,1)}
+@keyframes up{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.grab{width:38px;height:5px;border-radius:9px;background:var(--field);margin:0 auto 8px}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.sheet-head h2{margin:0;font-size:22px;font-weight:700;letter-spacing:-.01em}
+.link{color:var(--accent);font-weight:600;font-size:16px;padding:6px 2px}
+form{display:flex;flex-direction:column;gap:16px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fields .wide{grid-column:1/-1}
+.f{display:flex;flex-direction:column;gap:5px;min-width:0}
+.f > span,.cap{font-size:13px;font-weight:600;color:var(--fg2)}
+.cap{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.sheet input[type=text],.sheet input[type=tel],.sheet input[type=date]{width:100%;min-width:0;height:46px;border-radius:var(--r-m);border:1px solid transparent;background:var(--field);padding:0 13px;font-size:16px}
+input::placeholder{color:var(--fg2);opacity:.7}
+#f-plate{text-transform:uppercase;font-weight:650;letter-spacing:.04em}
+.block{display:flex;flex-direction:column;gap:8px}
+.parts{display:flex;flex-direction:column;gap:8px}
+.part{display:grid;grid-template-columns:minmax(0,1fr) 100px 36px;gap:6px;align-items:center}
+.part.each{grid-template-columns:minmax(0,1fr) 84px 56px 30px}
+.part input[data-k="c"],.part input[data-k="m"]{text-align:right;font-variant-numeric:tabular-nums}
+.part.each input{padding:0 9px}
+.part .x{height:46px;border-radius:var(--r-m);font-size:22px;color:var(--fg2)}
+.sug{display:flex;flex-direction:column;border-radius:var(--r-m);overflow:hidden;background:var(--glass-strong);border:1px solid var(--stroke);box-shadow:var(--shadow);grid-column:1/-1}
+.sug button{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:11px 13px;text-align:left;min-width:0}
+.sug button + button{border-top:1px solid var(--edge)}
+.sug button span{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sug button small{color:var(--fg2);font-size:13px;white-space:nowrap;flex:none;max-width:55%;overflow:hidden;text-overflow:ellipsis}
+.btn{height:50px;border-radius:var(--r-m);font-weight:650;font-size:16px;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 16px}
+.btn.soft{background:var(--field)}
+.btn.quick{border-radius:999px;height:48px;width:100%}
+.btn.primary{background:var(--accent);color:var(--on-accent)}
+.btn.danger{color:var(--bad)}
+.btn[disabled]{opacity:.55;cursor:default}
+.scanbox{display:flex;gap:12px;align-items:center;border-radius:var(--r-m);background:var(--field);padding:10px}
+.thumb{position:relative;width:54px;height:68px;border-radius:9px;overflow:hidden;flex:none;background:var(--field)}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb.busy::after{content:"";position:absolute;left:0;right:0;height:26px;top:-26px;background:linear-gradient(to bottom,transparent,var(--accent));opacity:.75;animation:scanline 1.2s linear infinite}
+@keyframes scanline{to{top:100%}}
+.scanbox p{margin:0;font-size:14px;color:var(--fg2);min-width:0}
+.scanbox p strong{display:block;color:var(--fg);font-size:15px}
+.sw{display:flex;align-items:center;justify-content:space-between;gap:12px;font-weight:600;font-size:15px;cursor:pointer}
+.sw input{position:absolute;opacity:0;width:1px;height:1px}
+.sw i{flex:none;width:51px;height:31px;border-radius:99px;background:var(--field);position:relative;transition:background .2s}
+.sw i::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.25);transition:transform .2s}
+.sw input:checked + i{background:var(--good)}
+.sw input:checked + i::after{transform:translateX(20px)}
+.sw input:focus-visible + i{outline:2px solid var(--accent);outline-offset:2px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.chip{height:40px;min-width:54px;padding:0 12px;border-radius:999px;background:var(--field);font-weight:650;font-size:15px}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.pct{display:flex;align-items:center;gap:4px;margin-left:auto;font-weight:650;color:var(--fg2)}
+.sheet .pct input{width:68px;height:40px;text-align:right}
+.hint{margin:0;font-size:13px;color:var(--fg2)}
+.calc{border-radius:var(--r-l);padding:14px 16px;background:var(--field);display:flex;flex-direction:column;gap:8px;margin:0}
+.calc div{display:flex;justify-content:space-between;gap:12px;font-size:15px}
+.calc dt{color:var(--fg2)}
+.calc dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+.calc .big{border-top:1px solid var(--edge);padding-top:10px;font-size:17px}
+.calc .big dt{color:var(--fg);font-weight:650}
+.calc .big dd{font-weight:700;font-size:19px}
+.calc .net dd{color:var(--good)}
+
+.toast{position:fixed;z-index:20;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom, 0px));max-width:calc(100% - 32px);border-radius:999px;padding:11px 18px;font-size:15px;font-weight:600;text-align:center}
+
+@media (max-width:360px){
+  .hero{font-size:36px}
+  .part.each{grid-template-columns:minmax(0,1fr) 74px 50px 26px}
+}
+@media (prefers-reduced-motion: reduce){
+  .sheet{animation:none}
+  .thumb.busy::after{animation:none;top:0;height:100%;opacity:.25}
+  .sw i,.sw i::after{transition:none}
+}
+</style>
+
+<div class="field-bg" aria-hidden="true"><i></i><i></i><i></i></div>
+
+<main class="app">
+  <header class="top">
+    <div>
+      <p class="eyebrow" id="eyebrow">Заказы, запчасти, прибыль</p>
+      <h1>СТО Касса</h1>
+    </div>
+    <div class="head-actions">
+      <button type="button" class="iconbtn glass" id="btn-backup" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7.500 10.500 12 15l4.500-4.500M5 19h14"/></svg>
+        Копия
+      </button>
+      <select id="currency" class="cur glass" aria-label="Валюта">
+        <option value="₽">₽</option>
+        <option value="₴">₴</option>
+        <option value="₸">₸</option>
+        <option value="Br">Br</option>
+        <option value="$">$</option>
+        <option value="€">€</option>
+      </select>
+    </div>
+  </header>
+
+  <div class="seg glass" role="tablist" aria-label="Период" id="seg">
+    <button type="button" role="tab" data-p="today">Сегодня</button>
+    <button type="button" role="tab" data-p="week">7 дней</button>
+    <button type="button" role="tab" data-p="month">Месяц</button>
+    <button type="button" role="tab" data-p="all">Всё</button>
+  </div>
+
+  <div class="notice glass" id="notice" hidden></div>
+  <button type="button" class="nudge glass" id="backup-nudge" hidden></button>
+
+  <!-- Заказы -->
+  <div class="view" id="view-orders">
+    <section class="card glass" aria-live="polite">
+      <div>
+        <p class="label" id="sum-label">Чистая прибыль</p>
+        <p class="hero" id="sum-profit">0</p>
+      </div>
+      <div class="split" id="sum-split" aria-hidden="true"></div>
+      <dl class="stats">
+        <div><dt>Взято с клиентов</dt><dd id="sum-total">0</dd></div>
+        <div><dt><b style="background:var(--seg-cost)"></b>Запчасти, закупка</dt><dd id="sum-cost">0</dd></div>
+        <div><dt><b style="background:var(--seg-mech)"></b>Мастерам</dt><dd id="sum-mech">0</dd></div>
+        <div><dt><b style="background:var(--seg-exp)"></b>Расходы СТО</dt><dd id="sum-exp">0</dd></div>
+      </dl>
+    </section>
+    <button type="button" class="btn glass quick" id="btn-quick-exp">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      Внести расход СТО
+    </button>
+    <label class="search glass">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg>
+      <input type="text" id="q" placeholder="Поиск: номер, машина, клиент, запчасть" autocomplete="off" aria-label="Поиск по заказам">
+      <button type="button" id="q-clear" aria-label="Очистить поиск" hidden>×</button>
+    </label>
+    <section id="list" class="stack" aria-label="Заказы"></section>
+  </div>
+
+  <!-- Расходы -->
+  <div class="view" id="view-exp" hidden>
+    <section class="card glass" aria-live="polite">
+      <div>
+        <p class="label" id="exp-label">Расходы СТО</p>
+        <p class="hero" id="exp-total">0</p>
+      </div>
+      <ul class="rank" id="exp-cats"></ul>
+      <p class="muted">Сюда вносятся аренда, оклады, расходники и прочее. Процент мастеров с заказов считается сам и сюда не входит.</p>
+    </section>
+    <section id="exp-list" class="stack" aria-label="Расходы"></section>
+  </div>
+
+  <!-- Аналитика -->
+  <div class="view" id="view-stats" hidden></div>
+</main>
+
+<nav class="dock" aria-label="Разделы">
+  <div class="dock-in">
+    <div class="tabs glass" role="tablist" id="tabs">
+      <button type="button" role="tab" data-t="orders">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l1.6-4.4A2 2 0 0 1 8.500 6.300h7a2 2 0 0 1 1.900 1.300L19 12"/><rect x="3.500" y="12" width="17" height="5.500" rx="1.800"/><path d="M7 17.500v1.500M17 17.500v1.500"/></svg>
+        Заказы
+      </button>
+      <button type="button" role="tab" data-t="exp">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.500" y="6" width="17" height="12.500" rx="2.500"/><path d="M3.500 10.500h17M7.500 15h3"/></svg>
+        Расходы
+      </button>
+      <button type="button" role="tab" data-t="stats">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 19v-6M12 19V6M18 19v-9"/></svg>
+        Аналитика
+      </button>
+    </div>
+    <button type="button" class="add" id="btn-add" aria-label="Новый заказ">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+  </div>
+</nav>
+
+<div class="scrim" id="scrim" hidden></div>
+
+<!-- Заказ -->
+<section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden>
+  <div class="grab" aria-hidden="true"></div>
+  <div class="sheet-head">
+    <h2 id="sheet-title">Новый заказ</h2>
+    <button type="button" class="link" data-close>Закрыть</button>
+  </div>
+  <form id="form" novalidate>
+    <div class="fields" id="veh">
+      <label class="f"><span>Госномер</span><input type="text" id="f-plate" data-veh placeholder="А123ВС 77" autocomplete="off" autocapitalize="characters"></label>
+      <label class="f"><span>Машина</span><input type="text" id="f-car" data-veh placeholder="Toyota Corolla" autocomplete="off"></label>
+      <label class="f"><span>Клиент</span><input type="text" id="f-client" data-veh placeholder="Имя" autocomplete="off"></label>
+      <label class="f"><span>Телефон</span><input type="tel" id="f-phone" data-veh placeholder="+7 900 000-00-00" autocomplete="off" inputmode="tel"></label>
+      <label class="f wide"><span>Дата</span><input type="date" id="f-date"></label>
+    </div>
+
+    <div class="block">
+      <div class="cap"><span id="parts-cap">Запчасти: название и цена закупки</span><span id="parts-sum"></span></div>
+      <div class="parts" id="parts"></div>
+      <button type="button" class="btn soft" id="btn-photo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.500A2.500 2.500 0 0 1 6.500 6h1.200l1.200-1.800h6.200L16.300 6h1.200A2.500 2.500 0 0 1 20 8.500v8a2.500 2.500 0 0 1-2.500 2.500h-11A2.500 2.500 0 0 1 4 16.500z"/><circle cx="12" cy="12.500" r="3.400"/></svg>
+        Сфотографировать чек
+      </button>
+      <div class="scanbox" id="scanbox" hidden>
+        <div class="thumb" id="thumb"><img id="thumb-img" alt="Фото чека"></div>
+        <p id="scan-text"></p>
+      </div>
+    </div>
+
+    <div class="block">
+      <label class="sw"><span>Одна наценка на все позиции</span><input type="checkbox" id="f-same" checked><i aria-hidden="true"></i></label>
+      <div class="chips" id="chips">
+        <button type="button" class="chip" data-m="0">0%</button>
+        <button type="button" class="chip" data-m="10">10%</button>
+        <button type="button" class="chip" data-m="20">20%</button>
+        <button type="button" class="chip" data-m="30">30%</button>
+        <label class="pct"><input type="text" id="f-markup" inputmode="decimal" aria-label="Наценка, процентов"><span>%</span></label>
+      </div>
+      <p class="hint" id="each-hint" hidden>Наценка указывается в каждой строке, в поле с процентом.</p>
+    </div>
+
+    <label class="f"><span>Работа, стоимость для клиента</span><input type="text" id="f-labor" inputmode="decimal" placeholder="0"></label>
+
+    <div class="fields" id="mech">
+      <label class="f"><span>Мастер</span><input type="text" id="f-mech" placeholder="Имя" autocomplete="off"></label>
+      <label class="f"><span>Мастеру от работы, %</span><input type="text" id="f-mech-pct" inputmode="decimal" placeholder="0"></label>
+    </div>
+
+    <dl class="calc" aria-live="polite">
+      <div><dt>Запчасти, закупка</dt><dd id="c-cost">0</dd></div>
+      <div><dt id="c-markup-label">Наценка</dt><dd id="c-markup">0</dd></div>
+      <div><dt>Работа</dt><dd id="c-labor">0</dd></div>
+      <div class="big"><dt>Итого с клиента</dt><dd id="c-total">0</dd></div>
+      <div><dt id="c-mech-label">Мастеру</dt><dd id="c-mech">0</dd></div>
+      <div class="big net"><dt>Чистая прибыль</dt><dd id="c-profit">0</dd></div>
+    </dl>
+
+    <button type="submit" class="btn primary" id="btn-save">Сохранить</button>
+    <button type="button" class="btn danger" id="btn-delete" hidden>Удалить заказ</button>
+  </form>
+</section>
+
+<!-- Расход -->
+<section class="sheet" id="esheet" role="dialog" aria-modal="true" aria-labelledby="esheet-title" hidden>
+  <div class="grab" aria-hidden="true"></div>
+  <div class="sheet-head">
+    <h2 id="esheet-title">Новый расход</h2>
+    <button type="button" class="link" data-close>Закрыть</button>
+  </div>
+  <form id="eform" novalidate>
+    <div class="block">
+      <div class="cap"><span>Статья расхода</span></div>
+      <div class="chips" id="e-cats"></div>
+      <p class="hint" id="e-hint" hidden>Процент мастеров с заказов уже учтён автоматически. Сюда вносите только оклады и премии.</p>
+    </div>
+    <div class="fields">
+      <label class="f"><span>Сумма</span><input type="text" id="e-amount" inputmode="decimal" placeholder="0"></label>
+      <label class="f"><span>Дата</span><input type="date" id="e-date"></label>
+      <label class="f wide"><span>Комментарий</span><input type="text" id="e-note" placeholder="Например, аренда бокса за ноябрь" autocomplete="off"></label>
+    </div>
+    <button type="submit" class="btn primary" id="e-save">Сохранить</button>
+    <button type="button" class="btn danger" id="e-delete" hidden>Удалить расход</button>
+  </form>
+</section>
+
+<!-- Резервная копия -->
+<section class="sheet" id="bsheet" role="dialog" aria-modal="true" aria-labelledby="bsheet-title" hidden>
+  <div class="grab" aria-hidden="true"></div>
+  <div class="sheet-head">
+    <h2 id="bsheet-title">Резервная копия</h2>
+    <button type="button" class="link" data-close>Закрыть</button>
+  </div>
+  <div class="block" style="gap:14px">
+    <p class="btext">Все заказы и расходы хранятся только на этом устройстве. Копия в файле спасёт их, если телефон потеряется или данные браузера очистятся.</p>
+    <p class="btext" id="b-status"></p>
+    <button type="button" class="btn primary" id="b-export">Сохранить копию в файл</button>
+    <button type="button" class="btn soft" id="b-import">Загрузить копию из файла</button>
+    <p class="btext">Загрузка заменяет все текущие данные тем, что в файле. Так же копию можно перенести на другое устройство.</p>
+  </div>
+</section>
+<input type="file" id="backup-file" accept=".json,application/json" hidden>
+
+<div class="toast glass" id="toast" role="status" hidden></div>
+<input type="file" id="receipt-file" accept="image/*" capture="environment" hidden>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const LS = {
+    get(k, d){ try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+    set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+  };
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const num = s => { const n = parseFloat(String(s ?? '').replace(/\s/g, '').replace(',', '.')); return isFinite(n) && n > 0 ? n : 0; };
+  const low = s => String(s ?? '').toLowerCase().trim();
+  const pad = n => String(n).padStart(2, '0');
+  const iso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  const today = () => iso(new Date());
+  const daysAgo = n => { const d = new Date(); d.setDate(d.getDate() - n); return iso(d); };
+  const newId = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+  const PERIODS = { today: 'сегодня', week: 'за 7 дней', month: 'за месяц', all: 'за всё время' };
+  const CATS = ['Аренда', 'Зарплата', 'Расходники', 'Инструмент', 'Коммуналка', 'Прочее'];
+  const EYEBROW = { orders: 'Заказы, запчасти, прибыль', exp: 'Общие расходы СТО', stats: 'Аналитика' };
+
+  let orders = [], expenses = [];
+  let period = LS.get('sto-period', 'month'); if (!PERIODS[period]) period = 'month';
+  let tab = LS.get('sto-tab', 'orders'); if (!EYEBROW[tab]) tab = 'orders';
+  let cur = LS.get('sto-cur', '₽');
+  let query = '';
+  let mode = 'loading';            // loading | db | local
+  let db = null, sample = null, canImages = false;
+  let draft = null, edraft = null, scanToken = 0, thumbUrl = null;
+
+  const fmt = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 });
+  const money = n => fmt.format(Math.round(n)) + ' ' + cur;
+  const pctText = n => fmt.format(Math.round(n)) + '%';
+
+  function calc(o){
+    const parts = o.parts || [];
+    const cost = parts.reduce((s, p) => s + num(p.c), 0);
+    const markup = o.markupMode === 'each'
+      ? parts.reduce((s, p) => s + num(p.c) * num(p.m) / 100, 0)
+      : cost * num(o.markup) / 100;
+    const labor = num(o.labor);
+    const mech = labor * Math.min(num(o.mechPct), 100) / 100;
+    return { cost, markup, labor, mech, total: cost + markup + labor, profit: markup + labor - mech };
+  }
+
+  function inPeriod(d){
+    d = d || '';
+    if (period === 'all') return true;
+    if (period === 'today') return d === today();
+    if (period === 'week') return d >= daysAgo(6) && d <= today();
+    return d.slice(0, 7) === today().slice(0, 7);
+  }
+  function dayLabel(d){
+    if (d === today()) return 'Сегодня';
+    if (d === daysAgo(1)) return 'Вчера';
+    const dt = new Date(d + 'T00:00');
+    if (isNaN(dt)) return 'Без даты';
+    const sameYear = dt.getFullYear() === new Date().getFullYear();
+    return dt.toLocaleDateString('ru-RU', sameYear ? { day: 'numeric', month: 'long' } : { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+  const byDateDesc = (a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || 0) - (a.createdAt || 0);
+
+  function totals(){
+    const os = orders.filter(o => inPeriod(o.date));
+    const es = expenses.filter(e => inPeriod(e.date));
+    const t = { cost: 0, markup: 0, labor: 0, mech: 0, total: 0, profit: 0, exp: 0, count: os.length };
+    for (const o of os){ const c = calc(o); t.cost += c.cost; t.markup += c.markup; t.labor += c.labor; t.mech += c.mech; t.total += c.total; t.profit += c.profit; }
+    for (const e of es) t.exp += num(e.amount);
+    t.net = t.profit - t.exp;
+    return { t, os, es };
+  }
+
+  /* ---------- render ---------- */
+  function render(){
+    document.querySelectorAll('#seg button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.p === period)));
+    document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.t === tab)));
+    $('view-orders').hidden = tab !== 'orders';
+    $('view-exp').hidden = tab !== 'exp';
+    $('view-stats').hidden = tab !== 'stats';
+    $('eyebrow').textContent = EYEBROW[tab];
+    $('btn-add').setAttribute('aria-label', tab === 'exp' ? 'Новый расход' : 'Новый заказ');
+    const data = totals();
+    updateBackupUI();
+    if (tab === 'orders') renderOrders(data);
+    else if (tab === 'exp') renderExpenses(data);
+    else renderStats(data);
+  }
+
+  function emptyBox(title, text){ return '<div class="empty glass"><strong>' + esc(title) + '</strong>' + esc(text) + '</div>'; }
+
+  function renderOrders({ t, os }){
+    $('sum-label').textContent = 'Чистая прибыль ' + PERIODS[period];
+    const p = $('sum-profit'); p.textContent = money(t.net);
+    p.classList.toggle('pos', t.net > 0); p.classList.toggle('neg', t.net < 0);
+    $('sum-total').textContent = money(t.total);
+    $('sum-cost').textContent = money(t.cost);
+    $('sum-mech').textContent = money(t.mech);
+    $('sum-exp').textContent = money(t.exp);
+    const segs = [['--seg-cost', t.cost], ['--seg-mech', t.mech], ['--seg-exp', t.exp], ['--good', Math.max(t.net, 0)]];
+    const whole = segs.reduce((s, x) => s + x[1], 0);
+    $('sum-split').innerHTML = whole ? segs.filter(x => x[1] > 0).map(x => '<span style="background:var(' + x[0] + ');width:' + (x[1] / whole * 100) + '%"></span>').join('') : '';
+
+    const list = $('list');
+    if (mode === 'loading'){ list.innerHTML = '<div class="empty glass">Загружаем заказы…</div>'; return; }
+    const words = low(query).split(/\s+/).filter(Boolean);
+    let shown;
+    if (words.length){
+      shown = orders.filter(o => {
+        const hay = low([o.car, o.plate, o.client, o.phone, String(o.phone || '').replace(/\D/g, ''), o.mechanic, ...(o.parts || []).map(x => x.n)].join(' '));
+        return words.every(w => hay.includes(w));
+      });
+    } else shown = os.slice();
+    shown.sort(byDateDesc);
+    if (!shown.length){
+      list.innerHTML = words.length ? emptyBox('Ничего не найдено', 'Поиск идёт по всем заказам за всё время: номер, машина, клиент, телефон, мастер, запчасть.')
+        : orders.length ? emptyBox('За этот период заказов нет', 'Выберите другой период или добавьте заказ.')
+        : emptyBox('Заказов пока нет', 'Нажмите плюс внизу, чтобы добавить первый заказ. Здесь появятся машины, суммы и прибыль.');
+      return;
+    }
+    const groups = new Map();
+    for (const o of shown){ const k = o.date || ''; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(o); }
+    let html = words.length ? '<div class="day"><span>Найдено за всё время: ' + shown.length + '</span></div>' : '';
+    for (const [d, items] of groups){
+      const dayProfit = items.reduce((s, o) => s + calc(o).profit, 0);
+      html += '<div class="day"><span>' + esc(dayLabel(d)) + '</span><span>+' + esc(money(dayProfit)) + '</span></div><div class="group glass">';
+      for (const o of items){
+        const c = calc(o);
+        html += '<button type="button" class="row" data-id="' + esc(o.id) + '">'
+          + '<span class="main"><span class="car">' + esc(o.car || o.plate || 'Без названия') + '</span>'
+          + '<span class="meta">' + (o.plate ? '<span class="plate">' + esc(o.plate) + '</span>' : '')
+          + (o.client ? '<span>' + esc(o.client) + '</span>' : '')
+          + (o.mechanic ? '<span>мастер ' + esc(o.mechanic) + '</span>' : '')
+          + (o.receipt ? '<span class="pill">чек</span>' : '') + (o.demo ? '<span class="pill">пример</span>' : '')
+          + '</span></span>'
+          + '<span class="sum"><span class="total">' + esc(money(c.total)) + '</span><div class="gain">+' + esc(money(c.profit)) + '</div></span>'
+          + '</button>';
+      }
+      html += '</div>';
+    }
+    list.innerHTML = html;
+  }
+
+  function rankHTML(rows, max){
+    return rows.map(r => '<li><div class="l"><span class="n">' + esc(r.name) + '</span><span class="v">' + esc(r.value) + '</span></div>'
+      + (r.sub ? '<small>' + esc(r.sub) + '</small>' : '')
+      + '<div class="track"><i style="width:' + (max ? Math.max(r.raw / max * 100, 1.5) : 0) + '%"></i></div></li>').join('');
+  }
+  function sumBy(items, keyFn, valFn){
+    const m = new Map();
+    for (const it of items){ const k = keyFn(it); if (!k) continue; m.set(k, (m.get(k) || 0) + valFn(it)); }
+    return [...m.entries()].sort((a, b) => b[1] - a[1]);
+  }
+
+  function renderExpenses({ t, es }){
+    $('exp-label').textContent = 'Расходы СТО ' + PERIODS[period];
+    $('exp-total').textContent = money(t.exp);
+    const cats = sumBy(es, e => e.cat || 'Прочее', e => num(e.amount));
+    $('exp-cats').innerHTML = rankHTML(cats.map(([k, v]) => ({ name: k, value: money(v), raw: v, sub: t.exp ? pctText(v / t.exp * 100) + ' расходов' : '' })), cats.length ? cats[0][1] : 0);
+    $('exp-cats').hidden = !cats.length;
+    const list = $('exp-list');
+    if (mode === 'loading'){ list.innerHTML = '<div class="empty glass">Загружаем расходы…</div>'; return; }
+    const shown = es.slice().sort(byDateDesc);
+    if (!shown.length){
+      list.innerHTML = expenses.length ? emptyBox('За этот период расходов нет', 'Выберите другой период или добавьте расход.')
+        : emptyBox('Расходов пока нет', 'Нажмите плюс внизу и внесите аренду, оклады или расходники. Они вычтутся из прибыли.');
+      return;
+    }
+    const groups = new Map();
+    for (const e of shown){ const k = e.date || ''; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(e); }
+    let html = '';
+    for (const [d, items] of groups){
+      html += '<div class="day"><span>' + esc(dayLabel(d)) + '</span><span>' + esc(money(items.reduce((s, e) => s + num(e.amount), 0))) + '</span></div><div class="group glass">';
+      for (const e of items){
+        html += '<button type="button" class="row" data-eid="' + esc(e.id) + '"><span class="main"><span class="car">' + esc(e.cat || 'Прочее') + '</span>'
+          + '<span class="meta">' + (e.note ? '<span>' + esc(e.note) + '</span>' : '') + (e.demo ? '<span class="pill">пример</span>' : '') + '</span></span>'
+          + '<span class="sum"><span class="total">' + esc(money(num(e.amount))) + '</span></span></button>';
+      }
+      html += '</div>';
+    }
+    list.innerHTML = html;
+  }
+
+  function chartSeries(os){
+    const out = [];
+    if (period === 'all'){
+      const now = new Date();
+      for (let i = 11; i >= 0; i--){
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const key = d.getFullYear() + '-' + pad(d.getMonth() + 1);
+        out.push({ key, label: d.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' }), short: d.toLocaleDateString('ru-RU', { month: 'short' }).replace('.', ''), v: 0 });
+      }
+      for (const o of orders){ const b = out.find(x => x.key === (o.date || '').slice(0, 7)); if (b) b.v += calc(o).profit; }
+      return { bars: out, title: 'Прибыль с заказов по месяцам' };
+    }
+    let days = [];
+    if (period === 'month'){
+      const now = new Date(), last = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+      for (let i = 1; i <= last; i++) days.push(iso(new Date(now.getFullYear(), now.getMonth(), i)));
+    } else {
+      for (let i = 6; i >= 0; i--) days.push(daysAgo(i));
+    }
+    const src = period === 'month' ? os : orders;
+    for (const d of days){
+      const dt = new Date(d + 'T00:00');
+      out.push({ key: d, label: dt.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }), short: String(dt.getDate()), v: 0 });
+    }
+    for (const o of src){ const b = out.find(x => x.key === o.date); if (b) b.v += calc(o).profit; }
+    return { bars: out, title: period === 'month' ? 'Прибыль с заказов по дням месяца' : 'Прибыль с заказов за 7 дней' };
+  }
+
+  function renderStats({ t, os, es }){
+    const v = $('view-stats');
+    if (mode === 'loading'){ v.innerHTML = '<div class="empty glass">Загружаем данные…</div>'; return; }
+    if (!orders.length && !expenses.length){ v.innerHTML = emptyBox('Пока нечего считать', 'Добавьте первые заказы и расходы. Здесь появятся прибыль по дням, мастера, клиенты и запчасти.'); return; }
+
+    const partsRev = t.cost + t.markup;
+    const margin = t.total ? t.net / t.total * 100 : 0;
+    let html = '<div class="tiles">'
+      + '<div class="tile glass"><p>Выручка ' + PERIODS[period] + '</p><strong>' + esc(money(t.total)) + '</strong></div>'
+      + '<div class="tile glass"><p>Чистая прибыль</p><strong>' + esc(money(t.net)) + '</strong></div>'
+      + '<div class="tile glass"><p>Средний чек</p><strong>' + esc(money(t.count ? t.total / t.count : 0)) + '</strong></div>'
+      + '<div class="tile glass"><p>Заказов · маржа</p><strong>' + t.count + ' · ' + esc(pctText(margin)) + '</strong></div>'
+      + '</div>';
+
+    const ch = chartSeries(os);
+    const max = ch.bars.reduce((m, b) => Math.max(m, b.v), 0);
+    html += '<section class="card glass"><h2>' + esc(ch.title) + '</h2>';
+    if (max > 0){
+      html += '<div class="chart"><div class="bars" id="bars">'
+        + ch.bars.map((b, i) => '<button type="button" class="' + (b.v ? '' : 'zero') + '" data-i="' + i + '" aria-label="' + esc(b.label + ': ' + money(b.v)) + '"><i style="height:' + (b.v / max * 100) + '%"></i></button>').join('')
+        + '</div><div class="axis"><span>' + esc(ch.bars[0].short) + '</span><span>' + esc(ch.bars[Math.floor(ch.bars.length / 2)].short) + '</span><span>' + esc(ch.bars[ch.bars.length - 1].short) + '</span></div></div>'
+        + '<p class="tip" id="tip">Лучший результат: <b>' + esc(money(max)) + '</b>. Нажмите на столбик, чтобы увидеть сумму.</p>';
+    } else html += '<p class="muted">За этот отрезок заказов с прибылью нет.</p>';
+    html += '<p class="muted">Без учёта общих расходов СТО.</p></section>';
+
+    if (t.total){
+      html += '<section class="card glass"><h2>Из чего состоит выручка</h2>'
+        + '<div class="split"><span style="background:var(--accent);width:' + (partsRev / t.total * 100) + '%"></span><span style="background:var(--seg-mech);width:' + (t.labor / t.total * 100) + '%"></span></div>'
+        + '<div class="legend"><span><b style="background:var(--accent)"></b>Запчасти ' + esc(money(partsRev)) + ' (' + esc(pctText(partsRev / t.total * 100)) + ')</span>'
+        + '<span><b style="background:var(--seg-mech)"></b>Работа ' + esc(money(t.labor)) + ' (' + esc(pctText(t.labor / t.total * 100)) + ')</span></div>'
+        + '<p class="muted">Заработано на наценке: ' + esc(money(t.markup)) + '. На работе после выплат мастерам: ' + esc(money(t.labor - t.mech)) + '.</p></section>';
+    }
+
+    const mechs = new Map();
+    for (const o of os){
+      const name = (o.mechanic || '').trim(); if (!name) continue;
+      const c = calc(o), m = mechs.get(name) || { labor: 0, pay: 0, n: 0 };
+      m.labor += c.labor; m.pay += c.mech; m.n++; mechs.set(name, m);
+    }
+    if (mechs.size){
+      const rows = [...mechs.entries()].sort((a, b) => b[1].pay - a[1].pay);
+      html += '<section class="card glass"><h2>Мастера: к выплате</h2><ul class="rank">'
+        + rankHTML(rows.map(([k, m]) => ({ name: k, value: money(m.pay), raw: m.pay, sub: 'Заказов: ' + m.n + ' · работ на ' + money(m.labor) })), rows[0][1].pay)
+        + '</ul></section>';
+    }
+
+    const clients = new Map();
+    for (const o of os){
+      const key = low(o.plate) || low(o.car) || low(o.client); if (!key) continue;
+      const c = calc(o), m = clients.get(key) || { name: '', sub: '', total: 0, profit: 0, n: 0 };
+      m.name = [o.car, o.plate].filter(Boolean).join(' · ') || o.client; m.client = o.client || m.client;
+      m.total += c.total; m.profit += c.profit; m.n++; clients.set(key, m);
+    }
+    if (clients.size){
+      const rows = [...clients.values()].sort((a, b) => b.total - a.total).slice(0, 5);
+      html += '<section class="card glass"><h2>Лучшие клиенты</h2><ul class="rank">'
+        + rankHTML(rows.map(m => ({ name: m.name, value: money(m.total), raw: m.total, sub: (m.client ? m.client + ' · ' : '') + 'заказов: ' + m.n + ' · прибыль ' + money(m.profit) })), rows[0].total)
+        + '</ul></section>';
+    }
+
+    const pm = new Map();
+    for (const o of os){
+      const each = o.markupMode === 'each';
+      for (const p of (o.parts || [])){
+        const k = low(p.n); if (!k) continue;
+        const m = pm.get(k) || { name: p.n, gain: 0, n: 0 };
+        m.gain += num(p.c) * num(each ? p.m : o.markup) / 100; m.n++; pm.set(k, m);
+      }
+    }
+    const topParts = [...pm.values()].filter(x => x.gain > 0).sort((a, b) => b.gain - a.gain).slice(0, 5);
+    if (topParts.length){
+      html += '<section class="card glass"><h2>Запчасти, на которых заработали больше</h2><ul class="rank">'
+        + rankHTML(topParts.map(m => ({ name: m.name, value: '+' + money(m.gain), raw: m.gain, sub: 'Продано раз: ' + m.n })), topParts[0].gain)
+        + '</ul></section>';
+    }
+
+    const cats = sumBy(es, e => e.cat || 'Прочее', e => num(e.amount));
+    if (cats.length){
+      html += '<section class="card glass"><h2>Расходы СТО по статьям</h2><ul class="rank">'
+        + rankHTML(cats.map(([k, val]) => ({ name: k, value: money(val), raw: val, sub: pctText(val / t.exp * 100) + ' расходов' })), cats[0][1])
+        + '</ul></section>';
+    }
+    v.innerHTML = html;
+
+    const bars = $('bars');
+    if (bars){
+      const show = e => {
+        const b = e.target.closest('button'); if (!b) return;
+        const it = ch.bars[+b.dataset.i]; if (!it) return;
+        bars.querySelectorAll('.on').forEach(x => x.classList.remove('on')); b.classList.add('on');
+        $('tip').innerHTML = esc(it.label) + ': <b>' + esc(money(it.v)) + '</b>';
+      };
+      bars.addEventListener('click', show); bars.addEventListener('mouseover', show); bars.addEventListener('focusin', show);
+    }
+  }
+
+  /* ---------- storage ---------- */
+  function notice(text){ const n = $('notice'); n.textContent = text || ''; n.hidden = !text; }
+  let toastTimer;
+  function toast(text){ const t = $('toast'); t.textContent = text; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 2600); }
+
+  const store = {
+    orders: { col: 'orders', ls: 'sto-orders', get: () => orders, set: v => { orders = v; } },
+    expenses: { col: 'expenses', ls: 'sto-expenses', get: () => expenses, set: v => { expenses = v; } }
+  };
+  async function saveDoc(kind, item){
+    const s = store[kind], { id, ...body } = item;
+    if (db){ await db.collection(s.col).doc(id).set(body); return; }
+    const arr = s.get().slice(), i = arr.findIndex(x => x.id === id);
+    if (i >= 0) arr[i] = item; else arr.push(item);
+    s.set(arr); LS.set(s.ls, arr); render();
+  }
+  async function removeDoc(kind, id){
+    const s = store[kind];
+    if (db){ await db.collection(s.col).doc(id).delete(); return; }
+    const arr = s.get().filter(x => x.id !== id);
+    s.set(arr); LS.set(s.ls, arr); render();
+  }
+  function startLocal(){
+    mode = 'local';
+    for (const k of Object.keys(store)){ const v = LS.get(store[k].ls, []); store[k].set(Array.isArray(v) ? v : []); }
+    try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch {}
+    render();
+  }
+  async function init(){
+    render();
+    const c = window.claude;
+    if (!c || typeof c.use !== 'function'){ startLocal(); return; }
+    c.use('sample').then(async s => {
+      if (!s) return;
+      sample = s;
+      try { const l = await s.limits(); canImages = !!(l && l.images); } catch { canImages = false; }
+    }).catch(() => {});
+    let d = null;
+    try { d = await c.use('db'); } catch { d = null; }
+    if (!d){ startLocal(); return; }
+    db = d;
+    const slow = setTimeout(() => notice(mode === 'loading' ? 'Данные пока не загрузились. Проверьте соединение.' : 'Нет связи с сервером. Список может быть неактуальным.'), 10000);
+    const dead = () => { clearTimeout(slow); mode = 'db'; notice('Нет доступа к данным. Новые записи не сохранятся.'); render(); };
+    db.collection('orders').onSnapshot(snap => {
+      orders = snap.docs.map(x => ({ ...x.data(), id: x.id }));
+      if (!snap.metadata.fromCache){ clearTimeout(slow); notice(''); }
+      mode = 'db'; render();
+    }, dead);
+    db.collection('expenses').onSnapshot(snap => {
+      expenses = snap.docs.map(x => ({ ...x.data(), id: x.id }));
+      render();
+    }, dead);
+  }
+
+  /* ---------- backup (only when data lives on this device) ---------- */
+  const WEEK = 7 * 864e5;
+  function backupWhen(){
+    const at = LS.get('sto-backup-at', 0);
+    return at ? new Date(at).toLocaleString('ru-RU', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) : '';
+  }
+  function updateBackupUI(){
+    const local = mode === 'local';
+    $('btn-backup').hidden = !local;
+    const nudge = $('backup-nudge');
+    if (!local){ nudge.hidden = true; return; }
+    const at = LS.get('sto-backup-at', 0), n = orders.length + expenses.length;
+    const never = !at && n >= 3, old = at && n > 0 && Date.now() - at > WEEK;
+    nudge.hidden = !(never || old);
+    nudge.textContent = old ? 'Копия сохранялась больше недели назад. Сохранить сейчас' : 'Данные хранятся только на этом устройстве. Сохранить копию в файл';
+    $('b-status').innerHTML = 'Сейчас в приложении: <b>заказов ' + orders.length + ', расходов ' + expenses.length + '</b>. '
+      + (at ? 'Последняя копия: <b>' + esc(backupWhen()) + '</b>.' : 'Копия ещё ни разу не сохранялась.');
+  }
+  function openBackup(){
+    const b = $('b-import'); b.dataset.armed = ''; b.textContent = 'Загрузить копию из файла';
+    updateBackupUI(); showSheet($('bsheet'));
+  }
+  async function exportBackup(){
+    const name = 'sto-kassa-' + today() + '.json';
+    const text = JSON.stringify({ app: 'sto-kassa', version: 1, exportedAt: new Date().toISOString(), currency: cur, orders, expenses }, null, 1);
+    const done = () => { LS.set('sto-backup-at', Date.now()); updateBackupUI(); toast('Копия сохранена: ' + name); };
+    let file = null;
+    try { file = new File([text], name, { type: 'application/json' }); } catch { file = null; }
+    if (file && navigator.maxTouchPoints > 0 && navigator.canShare && navigator.canShare({ files: [file] })){
+      try { await navigator.share({ files: [file], title: name }); done(); return; }
+      catch (e) { if (e && e.name === 'AbortError') return; }
+    }
+    const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+    const a = document.createElement('a'); a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    done();
+  }
+  async function importBackup(file){
+    let data;
+    try { data = JSON.parse(await file.text()); } catch { toast('Это не файл копии'); return; }
+    if (!data || !Array.isArray(data.orders) || !Array.isArray(data.expenses)){ toast('Это не файл копии СТО Касса'); return; }
+    const clean = arr => arr.filter(x => x && typeof x === 'object' && typeof x.id === 'string');
+    orders = clean(data.orders); expenses = clean(data.expenses);
+    LS.set('sto-orders', orders); LS.set('sto-expenses', expenses);
+    closeSheets(); render();
+    toast('Загружено: заказов ' + orders.length + ', расходов ' + expenses.length);
+  }
+  $('btn-backup').addEventListener('click', openBackup);
+  $('backup-nudge').addEventListener('click', openBackup);
+  $('b-export').addEventListener('click', exportBackup);
+  $('b-import').addEventListener('click', e => {
+    if (orders.length + expenses.length > 0 && !armDelete(e.currentTarget, 'Загрузить копию из файла', 'Текущие данные заменятся. Нажмите ещё раз')) return;
+    $('backup-file').click();
+  });
+  $('backup-file').addEventListener('change', e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) importBackup(f); });
+
+  /* ---------- suggestions (memory) ---------- */
+  const sug = document.createElement('div'); sug.className = 'sug'; sug.hidden = true;
+  let sugItems = [], sugTimer;
+  function showSug(anchor, items){
+    clearTimeout(sugTimer);
+    if (!items.length){ hideSug(); return; }
+    sugItems = items;
+    sug.innerHTML = items.map((it, i) => '<button type="button" data-s="' + i + '"><span>' + esc(it.label) + '</span><small>' + esc(it.sub || '') + '</small></button>').join('');
+    anchor.insertAdjacentElement('afterend', sug);
+    sug.hidden = false;
+  }
+  function hideSug(){ sug.hidden = true; sugItems = []; sug.remove(); }
+  sug.addEventListener('mousedown', e => e.preventDefault());
+  sug.addEventListener('click', e => {
+    const b = e.target.closest('[data-s]'); if (!b) return;
+    const it = sugItems[+b.dataset.s]; hideSug(); if (it) it.pick();
+  });
+  document.addEventListener('focusout', e => { if (e.target.closest && e.target.closest('.sheet')){ clearTimeout(sugTimer); sugTimer = setTimeout(hideSug, 220); } });
+  const matchAll = (hay, q) => { const w = low(q).split(/\s+/).filter(Boolean); return w.length > 0 && w.every(x => hay.includes(x)); };
+
+  function partMemory(){
+    const m = new Map();
+    for (const o of orders.slice().sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))){
+      for (const p of (o.parts || [])){
+        const k = low(p.n); if (!k) continue;
+        const r = m.get(k) || { n: p.n, c: 0, m: null, count: 0 };
+        r.n = p.n; r.c = num(p.c) || r.c; if (o.markupMode === 'each') r.m = num(p.m); r.count++; m.set(k, r);
+      }
+    }
+    return [...m.values()];
+  }
+  function vehicleMemory(){
+    const m = new Map();
+    for (const o of orders.slice().sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))){
+      const k = low(o.plate) || low(o.car) + '|' + low(o.client); if (k === '|') continue;
+      const r = m.get(k) || { car: '', plate: '', client: '', phone: '', count: 0 };
+      r.car = o.car || r.car; r.plate = o.plate || r.plate; r.client = o.client || r.client; r.phone = o.phone || r.phone; r.count++; m.set(k, r);
+    }
+    return [...m.values()];
+  }
+  function mechMemory(){
+    const m = new Map();
+    for (const o of orders.slice().sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))){
+      const k = low(o.mechanic); if (!k) continue;
+      const r = m.get(k) || { name: o.mechanic, pct: 0, count: 0 };
+      r.name = o.mechanic; r.pct = num(o.mechPct) || r.pct; r.count++; m.set(k, r);
+    }
+    return [...m.values()];
+  }
+
+  function suggestParts(input){
+    const i = +input.dataset.i, q = input.value;
+    const items = partMemory().filter(r => matchAll(low(r.n), q) && low(r.n) !== low(q)).sort((a, b) => b.count - a.count).slice(0, 5)
+      .map(r => ({ label: r.n, sub: r.c ? 'в прошлый раз ' + money(r.c) : '', pick(){
+        const p = draft && draft.parts[i]; if (!p) return;
+        p.n = r.n; p.c = r.c; if (r.m != null) p.m = r.m;
+        ensureTail(); renderParts(); recalc();
+        const el = $('part-c-' + i); if (el){ el.focus(); el.select(); }
+      } }));
+    showSug(input.closest('.part'), items);
+  }
+  function suggestVehicle(input){
+    const q = input.value, digits = q.replace(/\D/g, '');
+    const items = vehicleMemory().filter(r => {
+      const hay = low([r.car, r.plate, r.client, r.phone].join(' '));
+      return matchAll(hay, q) || (digits.length >= 3 && String(r.phone).replace(/\D/g, '').includes(digits));
+    }).sort((a, b) => b.count - a.count).slice(0, 4)
+      .map(r => ({ label: [r.car, r.plate].filter(Boolean).join(' · ') || r.client, sub: [r.client, r.phone].filter(Boolean).join(' · '), pick(){
+        $('f-car').value = r.car; $('f-plate').value = r.plate; $('f-client').value = r.client; $('f-phone').value = r.phone;
+        toast('Данные клиента подставлены');
+      } }));
+    showSug($('veh'), items);
+  }
+  function suggestMech(input){
+    const q = input.value;
+    const all = mechMemory().sort((a, b) => b.count - a.count);
+    const items = (q.trim() ? all.filter(r => matchAll(low(r.name), q) && low(r.name) !== low(q)) : all).slice(0, 5)
+      .map(r => ({ label: r.name, sub: r.pct ? pctText(r.pct) + ' от работы' : '', pick(){
+        $('f-mech').value = r.name; draft.mechPct = r.pct; $('f-mech-pct').value = r.pct ? String(r.pct) : ''; recalc();
+      } }));
+    showSug($('mech'), items);
+  }
+
+  /* ---------- sheets ---------- */
+  function showSheet(el){
+    $('scrim').hidden = false; el.hidden = false; el.scrollTop = 0;
+    document.documentElement.classList.add('locked');
+  }
+  function closeSheets(){
+    scanToken++; draft = null; edraft = null; hideSug();
+    $('scrim').hidden = true; $('sheet').hidden = true; $('esheet').hidden = true; $('bsheet').hidden = true;
+    document.documentElement.classList.remove('locked');
+    if (thumbUrl){ URL.revokeObjectURL(thumbUrl); thumbUrl = null; }
+  }
+  function armDelete(b, label, ask){
+    if (b.dataset.armed) return true;
+    b.dataset.armed = '1'; b.textContent = ask || 'Нажмите ещё раз, чтобы удалить';
+    setTimeout(() => { b.dataset.armed = ''; b.textContent = label; }, 3500);
+    return false;
+  }
+
+  /* ---------- order sheet ---------- */
+  const blankPart = () => ({ n: '', c: 0, m: draft ? num(draft.markup) : 20 });
+  function ensureTail(){
+    const last = draft.parts[draft.parts.length - 1];
+    if (!last || last.n.trim() || last.c){ draft.parts.push(blankPart()); return true; }
+    return false;
+  }
+  function openOrder(o){
+    const lastMarkup = LS.get('sto-markup', 20);
+    draft = o
+      ? { id: o.id, date: o.date || today(), parts: (o.parts || []).map(p => ({ n: p.n || '', c: num(p.c), m: p.m == null ? num(o.markup) : num(p.m) })), markupMode: o.markupMode === 'each' ? 'each' : 'all', markup: num(o.markup), labor: num(o.labor), mechPct: num(o.mechPct), receipt: !!o.receipt, createdAt: o.createdAt || Date.now(), isNew: false }
+      : { id: newId('o'), date: today(), parts: [], markupMode: 'all', markup: num(lastMarkup) || 0, labor: 0, mechPct: 0, receipt: false, createdAt: Date.now(), isNew: true };
+    ensureTail();
+    scanToken++;
+    $('sheet-title').textContent = draft.isNew ? 'Новый заказ' : 'Заказ';
+    $('f-car').value = o ? o.car || '' : '';
+    $('f-plate').value = o ? o.plate || '' : '';
+    $('f-client').value = o ? o.client || '' : '';
+    $('f-phone').value = o ? o.phone || '' : '';
+    $('f-date').value = draft.date;
+    $('f-same').checked = draft.markupMode === 'all';
+    $('f-markup').value = String(draft.markup);
+    $('f-labor').value = draft.labor ? String(draft.labor) : '';
+    $('f-mech').value = o ? o.mechanic || '' : '';
+    $('f-mech-pct').value = draft.mechPct ? String(draft.mechPct) : '';
+    $('scanbox').hidden = true;
+    $('btn-photo').disabled = false;
+    $('btn-photo').hidden = !window.claude;   // без Claude распознавать чек нечем
+    const del = $('btn-delete'); del.hidden = draft.isNew; del.textContent = 'Удалить заказ'; del.dataset.armed = '';
+    $('btn-save').disabled = false;
+    renderParts(); recalc();
+    showSheet($('sheet'));
+  }
+  function partRow(p, i){
+    const each = draft.markupMode === 'each';
+    return '<div class="part' + (each ? ' each' : '') + '">'
+      + '<input type="text" id="part-n-' + i + '" data-i="' + i + '" data-k="n" value="' + esc(p.n) + '" placeholder="Начните вводить запчасть" aria-label="Название запчасти" autocomplete="off">'
+      + '<input type="text" id="part-c-' + i + '" data-i="' + i + '" data-k="c" inputmode="decimal" value="' + (p.c ? esc(String(p.c)) : '') + '" placeholder="0" aria-label="Цена закупки">'
+      + (each ? '<input type="text" id="part-m-' + i + '" data-i="' + i + '" data-k="m" inputmode="decimal" value="' + esc(String(num(p.m))) + '" placeholder="%" aria-label="Наценка, процентов">' : '')
+      + '<button type="button" class="x" data-rm="' + i + '" aria-label="Убрать позицию">×</button>'
+      + '</div>';
+  }
+  function renderParts(){
+    hideSug();
+    const each = draft.markupMode === 'each';
+    $('parts').innerHTML = draft.parts.map(partRow).join('');
+    $('parts-cap').textContent = each ? 'Запчасти: название, закупка, наценка %' : 'Запчасти: название и цена закупки';
+    $('chips').hidden = each; $('each-hint').hidden = !each;
+  }
+  function recalc(){
+    if (!draft) return;
+    const c = calc(draft), each = draft.markupMode === 'each';
+    $('parts-sum').textContent = c.cost ? money(c.cost) : '';
+    $('c-cost').textContent = money(c.cost);
+    $('c-markup-label').textContent = each ? 'Наценка по позициям' : 'Наценка +' + pctText(num(draft.markup));
+    $('c-markup').textContent = '+' + money(c.markup);
+    $('c-labor').textContent = money(c.labor);
+    $('c-total').textContent = money(c.total);
+    $('c-mech-label').textContent = 'Мастеру' + (num(draft.mechPct) ? ' ' + pctText(Math.min(num(draft.mechPct), 100)) + ' от работы' : '');
+    $('c-mech').textContent = c.mech ? '−' + money(c.mech) : money(0);
+    $('c-profit').textContent = money(c.profit);
+    document.querySelectorAll('#chips .chip').forEach(b => b.setAttribute('aria-pressed', String(num(b.dataset.m) === num(draft.markup))));
+  }
+
+  $('parts').addEventListener('input', e => {
+    const el = e.target; if (!draft || el.dataset.i == null) return;
+    const i = +el.dataset.i, p = draft.parts[i]; if (!p) return;
+    if (el.dataset.k === 'c') p.c = num(el.value);
+    else if (el.dataset.k === 'm') p.m = num(el.value);
+    else p.n = el.value;
+    if (i === draft.parts.length - 1 && ensureTail())
+      $('parts').insertAdjacentHTML('beforeend', partRow(draft.parts[draft.parts.length - 1], draft.parts.length - 1));
+    if (el.dataset.k === 'n') suggestParts(el);
+    recalc();
+  });
+  $('parts').addEventListener('focusin', e => { const el = e.target; if (draft && el.dataset.k === 'n' && el.value.trim()) suggestParts(el); });
+  $('parts').addEventListener('click', e => {
+    const b = e.target.closest('[data-rm]'); if (!b || !draft) return;
+    draft.parts.splice(+b.dataset.rm, 1); ensureTail();
+    renderParts(); recalc();
+  });
+  $('veh').addEventListener('input', e => { if (e.target.matches('[data-veh]')) suggestVehicle(e.target); });
+  $('f-mech').addEventListener('input', e => suggestMech(e.target));
+  $('f-mech').addEventListener('focus', e => suggestMech(e.target));
+  $('f-mech-pct').addEventListener('input', e => { if (draft){ draft.mechPct = num(e.target.value); recalc(); } });
+  $('f-same').addEventListener('change', e => {
+    if (!draft) return;
+    draft.markupMode = e.target.checked ? 'all' : 'each';
+    if (draft.markupMode === 'each') draft.parts.forEach(p => { p.m = num(draft.markup); });
+    renderParts(); recalc();
+  });
+  $('chips').addEventListener('click', e => {
+    const b = e.target.closest('.chip'); if (!b || !draft) return;
+    draft.markup = num(b.dataset.m); $('f-markup').value = String(draft.markup); recalc();
+  });
+  $('f-markup').addEventListener('input', e => { if (draft){ draft.markup = num(e.target.value); recalc(); } });
+  $('f-labor').addEventListener('input', e => { if (draft){ draft.labor = num(e.target.value); recalc(); } });
+
+  $('form').addEventListener('submit', async e => {
+    e.preventDefault(); if (!draft) return;
+    const car = $('f-car').value.trim(), plate = $('f-plate').value.trim().toUpperCase();
+    if (!car && !plate){ toast('Укажите машину или госномер'); $('f-plate').focus(); return; }
+    const each = draft.markupMode === 'each';
+    const parts = draft.parts.filter(p => p.n.trim() || p.c).map(p => each ? { n: p.n.trim(), c: p.c, m: num(p.m) } : { n: p.n.trim(), c: p.c });
+    const o = { id: draft.id, car, plate, client: $('f-client').value.trim(), phone: $('f-phone').value.trim(), date: $('f-date').value || today(),
+      parts, markupMode: draft.markupMode, markup: num(draft.markup), labor: num(draft.labor),
+      mechanic: $('f-mech').value.trim(), mechPct: Math.min(num(draft.mechPct), 100), receipt: !!draft.receipt, createdAt: draft.createdAt };
+    const btn = $('btn-save'); btn.disabled = true;
+    try { await saveDoc('orders', o); if (!each) LS.set('sto-markup', o.markup); closeSheets(); toast('Заказ сохранён'); }
+    catch { btn.disabled = false; toast('Не удалось сохранить. Попробуйте ещё раз.'); }
+  });
+  $('btn-delete').addEventListener('click', async e => {
+    if (!draft || !armDelete(e.currentTarget, 'Удалить заказ')) return;
+    try { await removeDoc('orders', draft.id); closeSheets(); toast('Заказ удалён'); }
+    catch { toast('Не удалось удалить'); }
+  });
+
+  /* ---------- expense sheet ---------- */
+  function renderCats(){
+    $('e-cats').innerHTML = CATS.map(c => '<button type="button" class="chip" data-c="' + esc(c) + '" aria-pressed="' + (edraft.cat === c) + '">' + esc(c) + '</button>').join('');
+    $('e-hint').hidden = edraft.cat !== 'Зарплата';
+  }
+  function openExpense(x){
+    edraft = x ? { id: x.id, cat: CATS.includes(x.cat) ? x.cat : 'Прочее', createdAt: x.createdAt || Date.now(), isNew: false }
+               : { id: newId('e'), cat: 'Аренда', createdAt: Date.now(), isNew: true };
+    $('esheet-title').textContent = edraft.isNew ? 'Новый расход' : 'Расход';
+    $('e-amount').value = x && num(x.amount) ? String(num(x.amount)) : '';
+    $('e-date').value = x ? x.date || today() : today();
+    $('e-note').value = x ? x.note || '' : '';
+    const del = $('e-delete'); del.hidden = edraft.isNew; del.textContent = 'Удалить расход'; del.dataset.armed = '';
+    $('e-save').disabled = false;
+    renderCats();
+    showSheet($('esheet'));
+  }
+  $('e-cats').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b || !edraft) return; edraft.cat = b.dataset.c; renderCats(); });
+  $('eform').addEventListener('submit', async e => {
+    e.preventDefault(); if (!edraft) return;
+    const amount = num($('e-amount').value);
+    if (!amount){ toast('Укажите сумму'); $('e-amount').focus(); return; }
+    const x = { id: edraft.id, cat: edraft.cat, amount, note: $('e-note').value.trim(), date: $('e-date').value || today(), createdAt: edraft.createdAt };
+    const btn = $('e-save'); btn.disabled = true;
+    try { await saveDoc('expenses', x); closeSheets(); toast('Расход сохранён'); }
+    catch { btn.disabled = false; toast('Не удалось сохранить. Попробуйте ещё раз.'); }
+  });
+  $('e-delete').addEventListener('click', async e => {
+    if (!edraft || !armDelete(e.currentTarget, 'Удалить расход')) return;
+    try { await removeDoc('expenses', edraft.id); closeSheets(); toast('Расход удалён'); }
+    catch { toast('Не удалось удалить'); }
+  });
+
+  /* ---------- receipt photo ---------- */
+  const PROMPT = 'На фото кассовый чек, товарный чек или накладная на автозапчасти и расходники. '
+    + 'Выпиши купленные позиции. Ответь только JSON-объектом вида '
+    + '{"items":[{"name":"Колодки тормозные передние","price":3200}]}. '
+    + 'name: короткое название позиции по-русски, как в чеке. price: число, полная сумма за позицию с учётом количества, без валюты. '
+    + 'Не включай итоги, налоги, скидки и сдачу как отдельные позиции. Если это не чек или позиции не читаются, верни {"items":[]}.';
+  const MOCK = [
+    { n: 'Колодки тормозные передние', c: 3200 },
+    { n: 'Диски тормозные, 2 шт', c: 7400 },
+    { n: 'Жидкость тормозная DOT-4', c: 650 }
+  ];
+  const SCAN_ERR = {
+    not_granted: 'Распознавание не разрешено. Введите позиции вручную.',
+    rate_limited: 'Слишком много запросов. Попробуйте позже или введите вручную.',
+    image_rejected: 'Это фото не подошло. Попробуйте снять чек ещё раз.',
+    session_expired: 'Нужно заново войти в аккаунт, чтобы распознать чек.'
+  };
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  function scanState(title, text, busy){
+    $('scanbox').hidden = false;
+    $('thumb').classList.toggle('busy', !!busy);
+    $('scan-text').innerHTML = '<strong>' + esc(title) + '</strong>' + esc(text || '');
+    $('btn-photo').disabled = !!busy;
+  }
+  async function scan(file){
+    if (!draft) return;
+    const token = ++scanToken;
+    if (thumbUrl) URL.revokeObjectURL(thumbUrl);
+    thumbUrl = URL.createObjectURL(file);
+    $('thumb-img').src = thumbUrl;
+    scanState('Распознаём чек…', 'Обычно это занимает до минуты.', true);
+    let items = [], demo = false;
+    if (sample && canImages){
+      try {
+        const r = await sample.json(PROMPT, { images: file });
+        const raw = r && Array.isArray(r.items) ? r.items : [];
+        items = raw.map(x => ({ n: String(x && x.name || '').slice(0, 120), c: num(x && x.price) })).filter(x => x.n || x.c).slice(0, 40);
+      } catch (err) {
+        if (token !== scanToken) return;
+        scanState('Чек не распознан', SCAN_ERR[err && err.code] || 'Не получилось прочитать чек. Введите позиции вручную.', false);
+        return;
+      }
+    } else {
+      await wait(1800);
+      items = MOCK.map(x => ({ ...x })); demo = true;
+    }
+    if (token !== scanToken || !draft) return;
+    if (!items.length){ scanState('Позиции не найдены', 'На фото не видно позиций. Введите их вручную.', false); return; }
+    draft.parts = draft.parts.filter(p => p.n.trim() || p.c).concat(items.map(x => ({ ...x, m: num(draft.markup) })));
+    draft.receipt = true; ensureTail();
+    renderParts(); recalc();
+    scanState(demo ? 'Демо-распознавание' : 'Добавлено позиций: ' + items.length,
+      demo ? 'Подставлены примерные позиции. Замените их на свои.' : 'Проверьте названия и суммы перед сохранением.', false);
+  }
+  const fileInput = $('receipt-file');
+  fileInput.addEventListener('change', () => { const f = fileInput.files && fileInput.files[0]; fileInput.value = ''; if (f) scan(f); });
+  $('btn-photo').addEventListener('click', () => fileInput.click());
+
+  /* ---------- wiring ---------- */
+  $('btn-add').addEventListener('click', () => tab === 'exp' ? openExpense(null) : openOrder(null));
+  $('btn-quick-exp').addEventListener('click', () => openExpense(null));
+  document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', closeSheets));
+  $('scrim').addEventListener('click', closeSheets);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('scrim').hidden) closeSheets(); });
+  $('list').addEventListener('click', e => {
+    const r = e.target.closest('.row'); if (!r) return;
+    const o = orders.find(x => x.id === r.dataset.id); if (o) openOrder(o);
+  });
+  $('exp-list').addEventListener('click', e => {
+    const r = e.target.closest('.row'); if (!r) return;
+    const x = expenses.find(y => y.id === r.dataset.eid); if (x) openExpense(x);
+  });
+  $('seg').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    period = b.dataset.p; LS.set('sto-period', period); render();
+  });
+  $('tabs').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    tab = b.dataset.t; LS.set('sto-tab', tab); render(); window.scrollTo(0, 0);
+  });
+  $('q').addEventListener('input', e => { query = e.target.value; $('q-clear').hidden = !query; render(); });
+  $('q-clear').addEventListener('click', () => { query = ''; $('q').value = ''; $('q-clear').hidden = true; render(); $('q').focus(); });
+  const curSel = $('currency');
+  if ([...curSel.options].some(o => o.value === cur)) curSel.value = cur; else cur = '₽';
+  curSel.addEventListener('change', () => { cur = curSel.value; LS.set('sto-cur', cur); render(); recalc(); });
+
+  init();
+})();
+</script>
+
+<script>
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+  navigator.serviceWorker.register('sw.js').catch(function(){});
+}
+</script>
+</body>
+</html>
