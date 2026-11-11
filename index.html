@@ -145,6 +145,7 @@ h1{margin:0;font-size:32px;font-weight:700;letter-spacing:-.02em;line-height:1.1
 .iconbtn svg{width:18px;height:18px}
 .btext{margin:0;font-size:15px;color:var(--fg2)}
 .btext b{color:var(--fg)}
+.btext.berr{color:var(--bad);font-weight:600}
 .bsync{gap:12px;margin-top:22px;padding-top:18px;border-top:1px solid var(--edge)}
 .bsync h3{margin:0;font-size:19px;font-weight:700}
 .steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:7px;font-size:15px;color:var(--fg2)}
@@ -497,6 +498,7 @@ input::placeholder{color:var(--fg2);opacity:.7}
       <label class="f"><span>Репозиторий с данными</span><input type="text" id="b-repo" placeholder="аккаунт/sto-kassa-data" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
       <label class="f"><span>Ключ доступа (token)</span><input type="password" id="b-token" placeholder="github_pat_…" autocomplete="off"></label>
       <button type="button" class="btn primary" id="b-connect">Подключить</button>
+      <p class="btext berr" id="b-err" role="alert" hidden></p>
       <p class="btext">Ключ хранится только на этом устройстве. Не показывайте его посторонним.</p>
     </div>
     <div class="block" id="b-sync-on" style="gap:12px" hidden>
@@ -948,23 +950,25 @@ input::placeholder{color:var(--fg2);opacity:.7}
   async function connectSync(){
     const repo = $('b-repo').value.trim().replace(/^https:\/\/github\.com\//, '').replace(/\.git$/, '').replace(/\/+$/, '');
     const token = $('b-token').value.trim();
-    if (!/^[\w.-]+\/[\w.-]+$/.test(repo)){ toast('Репозиторий пишется как аккаунт/название'); return; }
-    if (!token){ toast('Вставьте ключ доступа'); return; }
     const btn = $('b-connect'), cfg = { repo, token };
-    const fail = msg => { btn.disabled = false; btn.textContent = 'Подключить'; toast(msg); };
+    const errBox = $('b-err');
+    const fail = msg => { btn.disabled = false; btn.textContent = 'Подключить'; errBox.textContent = msg; errBox.hidden = false; };
+    errBox.hidden = true;
+    if (!/^[\w.-]+\/[\w.-]+$/.test(repo)){ fail('Репозиторий пишется как аккаунт/название, например gbwfgkrcgq-dotcom/sto-kassa-data'); return; }
+    if (!token){ fail('Вставьте ключ доступа'); return; }
     btn.disabled = true; btn.textContent = 'Подключаем…';
     try {
       const r = await ghFetch(cfg, '');
-      if (r.status === 401){ fail('GitHub не принял ключ. Проверьте, что он скопирован целиком'); return; }
-      if (!r.ok){ fail('Репозиторий не найден или ключ не даёт к нему доступа'); return; }
+      if (r.status === 401){ fail('GitHub не принял ключ: он скопирован не целиком, удалён или истёк.'); return; }
+      if (!r.ok){ fail('GitHub не нашёл репозиторий «' + repo + '» для этого ключа. Проверьте название и то, что ключ создан в аккаунте-владельце и выдан именно на этот репозиторий.'); return; }
       const info = await r.json();
-      if (info.private === false){ fail('Этот репозиторий открытый. Для данных нужен закрытый'); return; }
-    } catch { fail('Нет связи с GitHub. Проверьте интернет'); return; }
+      if (info.private === false){ fail('Репозиторий «' + repo + '» открытый, его видят все. Для данных нужен закрытый, например sto-kassa-data.'); return; }
+    } catch { fail('Нет связи с GitHub. Проверьте интернет.'); return; }
     gh = cfg; markAllDirty(); syncState = 'idle';
     await syncNow(true);
     btn.disabled = false; btn.textContent = 'Подключить';
     if (syncState === 'ok'){ LS.set('sto-gh', gh); $('b-token').value = ''; toast('Синхронизация подключена'); }
-    else { const msg = syncErr; gh = null; syncState = 'idle'; dirty = { orders: {}, expenses: {} }; LS.set('sto-dirty', dirty); toast(msg === SYNC_MSG.auth ? 'Ключу не хватает права на запись (Contents: Read and write)' : msg); }
+    else { const msg = syncErr; gh = null; syncState = 'idle'; dirty = { orders: {}, expenses: {} }; LS.set('sto-dirty', dirty); fail(msg === SYNC_MSG.auth ? 'Ключ видит репозиторий, но не может в него писать. В настройках ключа нужно право Contents: Read and write.' : msg); }
     render();
   }
   function disconnectSync(){
