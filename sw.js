@@ -1,5 +1,6 @@
-// СТО Касса: держит приложение в памяти телефона, чтобы оно открывалось без интернета.
-const CACHE = 'sto-kassa-v2';
+// СТО Касса: держит приложение в памяти устройства, чтобы оно открывалось без интернета.
+// Есть сеть — берём свежую версию с сайта, нет сети — открываем сохранённую.
+const CACHE = 'sto-kassa-v3';
 const FILES = ['./', './index.html', './icon.png', './manifest.json'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
@@ -9,11 +10,10 @@ self.addEventListener('activate', e => {
 });
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET' || new URL(e.request.url).origin !== self.location.origin) return;
-  e.respondWith(caches.match(e.request, { ignoreSearch: true }).then(hit => {
-    const net = fetch(e.request).then(r => {
+  e.respondWith(
+    fetch(e.request, { cache: 'no-store' }).then(r => {
       if (r && r.ok) { const copy = r.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); }
       return r;
-    }).catch(() => hit);
-    return hit || net;
-  }));
+    }).catch(() => caches.match(e.request, { ignoreSearch: true }).then(hit => hit || caches.match('./index.html')))
+  );
 });
