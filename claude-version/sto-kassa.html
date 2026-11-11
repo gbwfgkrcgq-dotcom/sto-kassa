@@ -131,6 +131,10 @@ h1{margin:0;font-size:32px;font-weight:700;letter-spacing:-.02em;line-height:1.1
 .iconbtn svg{width:18px;height:18px}
 .btext{margin:0;font-size:15px;color:var(--fg2)}
 .btext b{color:var(--fg)}
+.bsync{gap:12px;margin-top:22px;padding-top:18px;border-top:1px solid var(--edge)}
+.bsync h3{margin:0;font-size:19px;font-weight:700}
+.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:7px;font-size:15px;color:var(--fg2)}
+.sheet textarea{width:100%;height:120px;border-radius:var(--r-m);border:0;background:var(--field);padding:10px;font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--fg)}
 
 .day{margin:8px 6px 0;font-size:13px;font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.06em;display:flex;justify-content:space-between;gap:8px}
 .group{border-radius:var(--r-l);overflow:hidden}
@@ -208,7 +212,7 @@ form{display:flex;flex-direction:column;gap:16px}
 .f{display:flex;flex-direction:column;gap:5px;min-width:0}
 .f > span,.cap{font-size:13px;font-weight:600;color:var(--fg2)}
 .cap{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.sheet input[type=text],.sheet input[type=tel],.sheet input[type=date]{width:100%;min-width:0;height:46px;border-radius:var(--r-m);border:1px solid transparent;background:var(--field);padding:0 13px;font-size:16px}
+.sheet input[type=text],.sheet input[type=tel],.sheet input[type=password],.sheet input[type=date]{width:100%;min-width:0;height:46px;border-radius:var(--r-m);border:1px solid transparent;background:var(--field);padding:0 13px;font-size:16px}
 input::placeholder{color:var(--fg2);opacity:.7}
 #f-plate{text-transform:uppercase;font-weight:650;letter-spacing:.04em}
 .block{display:flex;flex-direction:column;gap:8px}
@@ -282,7 +286,7 @@ input::placeholder{color:var(--fg2);opacity:.7}
     <div class="head-actions">
       <button type="button" class="iconbtn glass" id="btn-backup" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7.500 10.500 12 15l4.500-4.500M5 19h14"/></svg>
-        Копия
+        <span id="btn-backup-label">Копия</span>
       </button>
       <select id="currency" class="cur glass" aria-label="Валюта">
         <option value="₽">₽</option>
@@ -385,7 +389,7 @@ input::placeholder{color:var(--fg2);opacity:.7}
       <label class="f"><span>Госномер</span><input type="text" id="f-plate" data-veh placeholder="А123ВС 77" autocomplete="off" autocapitalize="characters"></label>
       <label class="f"><span>Машина</span><input type="text" id="f-car" data-veh placeholder="Toyota Corolla" autocomplete="off"></label>
       <label class="f"><span>Клиент</span><input type="text" id="f-client" data-veh placeholder="Имя" autocomplete="off"></label>
-      <label class="f"><span>Телефон</span><input type="tel" id="f-phone" data-veh placeholder="+7 900 000-00-00" autocomplete="off" inputmode="tel"></label>
+      <label class="f"><span>Телефон</span><input type="tel" id="f-phone" data-veh placeholder="+7 900 000-00-00" autocomplete="off" inputmode="tel" maxlength="18"></label>
       <label class="f wide"><span>Дата</span><input type="date" id="f-date"></label>
     </div>
 
@@ -462,7 +466,7 @@ input::placeholder{color:var(--fg2);opacity:.7}
 <section class="sheet" id="bsheet" role="dialog" aria-modal="true" aria-labelledby="bsheet-title" hidden>
   <div class="grab" aria-hidden="true"></div>
   <div class="sheet-head">
-    <h2 id="bsheet-title">Резервная копия</h2>
+    <h2 id="bsheet-title">Копия и синхронизация</h2>
     <button type="button" class="link" data-close>Закрыть</button>
   </div>
   <div class="block" style="gap:14px">
@@ -471,6 +475,21 @@ input::placeholder{color:var(--fg2);opacity:.7}
     <button type="button" class="btn primary" id="b-export">Сохранить копию в файл</button>
     <button type="button" class="btn soft" id="b-import">Загрузить копию из файла</button>
     <p class="btext">Загрузка заменяет все текущие данные тем, что в файле. Так же копию можно перенести на другое устройство.</p>
+  </div>
+  <div class="block bsync" id="b-sync" hidden>
+    <h3>Синхронизация через GitHub</h3>
+    <div class="block" id="b-sync-off" style="gap:12px">
+      <p class="btext">Приложение может само сохранять заказы и расходы в ваш закрытый репозиторий на GitHub и забирать их на другом устройстве. Подключается один раз на каждом устройстве.</p>
+      <label class="f"><span>Репозиторий с данными</span><input type="text" id="b-repo" placeholder="аккаунт/sto-kassa-data" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+      <label class="f"><span>Ключ доступа (token)</span><input type="password" id="b-token" placeholder="github_pat_…" autocomplete="off"></label>
+      <button type="button" class="btn primary" id="b-connect">Подключить</button>
+      <p class="btext">Ключ хранится только на этом устройстве. Не показывайте его посторонним.</p>
+    </div>
+    <div class="block" id="b-sync-on" style="gap:12px" hidden>
+      <p class="btext" id="b-sync-status"></p>
+      <button type="button" class="btn primary" id="b-sync-now">Синхронизировать сейчас</button>
+      <button type="button" class="btn danger" id="b-disconnect">Отключить синхронизацию</button>
+    </div>
   </div>
 </section>
 <input type="file" id="backup-file" accept=".json,application/json" hidden>
@@ -793,22 +812,162 @@ input::placeholder{color:var(--fg2);opacity:.7}
     expenses: { col: 'expenses', ls: 'sto-expenses', get: () => expenses, set: v => { expenses = v; } }
   };
   async function saveDoc(kind, item){
+    item.updatedAt = Date.now();
     const s = store[kind], { id, ...body } = item;
     if (db){ await db.collection(s.col).doc(id).set(body); return; }
     const arr = s.get().slice(), i = arr.findIndex(x => x.id === id);
     if (i >= 0) arr[i] = item; else arr.push(item);
-    s.set(arr); LS.set(s.ls, arr); render();
+    s.set(arr); LS.set(s.ls, arr);
+    if (gh){ dirty[kind][id] = item.updatedAt; LS.set('sto-dirty', dirty); queueSync(); }
+    render();
   }
   async function removeDoc(kind, id){
     const s = store[kind];
     if (db){ await db.collection(s.col).doc(id).delete(); return; }
     const arr = s.get().filter(x => x.id !== id);
-    s.set(arr); LS.set(s.ls, arr); render();
+    s.set(arr); LS.set(s.ls, arr);
+    if (gh){
+      delete dirty[kind][id]; tomb.push({ kind, id, updatedAt: Date.now() });
+      LS.set('sto-dirty', dirty); LS.set('sto-tomb', tomb); queueSync();
+    }
+    render();
   }
+
+  /* ---------- sync through a private GitHub repository (standalone app only) ---------- */
+  const SYNC_ON = !window.claude;
+  const KINDS = ['orders', 'expenses'];
+  const GH_API = LS.get('sto-gh-api', 'https://api.github.com');
+  const GH_FILE = 'data.json';
+  let gh = SYNC_ON ? LS.get('sto-gh', null) : null;            // { repo, token }, kept on this device only
+  if (!gh || !gh.repo || !gh.token) gh = null;
+  let syncState = 'idle', syncErr = '', syncTimer = null, syncAgain = false;
+  let dirty = LS.get('sto-dirty', null); if (!dirty || !dirty.orders || !dirty.expenses) dirty = { orders: {}, expenses: {} };
+  let tomb = LS.get('sto-tomb', []); if (!Array.isArray(tomb)) tomb = [];
+  const SYNC_MSG = {
+    auth: 'GitHub не принял ключ доступа. Подключите синхронизацию заново.',
+    offline: 'Нет интернета. Данные сохранены на устройстве и отправятся позже.',
+    net: 'Не удалось связаться с GitHub. Данные сохранены на устройстве, попробуем позже.',
+    bad: 'Файл с данными на GitHub повреждён. Синхронизация остановлена, данные на устройстве целы.'
+  };
+  const b64enc = s => { const b = new TextEncoder().encode(s); let o = ''; for (let i = 0; i < b.length; i += 0x8000) o += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(o); };
+  const b64dec = s => new TextDecoder().decode(Uint8Array.from(atob(String(s).replace(/\s/g, '')), c => c.charCodeAt(0)));
+  function ghFetch(cfg, path, method, body, raw){
+    return fetch(GH_API + '/repos/' + cfg.repo + path, { method: method || 'GET', cache: 'no-store',
+      headers: { 'Authorization': 'Bearer ' + cfg.token, 'Accept': raw ? 'application/vnd.github.raw+json' : 'application/vnd.github+json' },
+      body: body ? JSON.stringify(body) : undefined });
+  }
+  async function ghRead(cfg){
+    const res = await ghFetch(cfg, '/contents/' + GH_FILE);
+    if (res.status === 404) return { sha: null, data: { orders: [], expenses: [] } };
+    if (res.status === 401 || res.status === 403) throw { code: 'auth' };
+    if (!res.ok) throw { code: 'net' };
+    const j = await res.json();
+    let text;
+    if (j.content) text = b64dec(j.content);
+    else { const r2 = await ghFetch(cfg, '/contents/' + GH_FILE, 'GET', null, true); if (!r2.ok) throw { code: 'net' }; text = await r2.text(); }
+    let data; try { data = JSON.parse(text); } catch { throw { code: 'bad' }; }
+    return { sha: j.sha, data: { orders: Array.isArray(data.orders) ? data.orders : [], expenses: Array.isArray(data.expenses) ? data.expenses : [] } };
+  }
+  async function syncOnce(cfg, forceWrite){
+    const sent = { orders: { ...dirty.orders }, expenses: { ...dirty.expenses } }, sentTomb = tomb.slice();
+    const { sha, data } = await ghRead(cfg);
+    let changed = !!forceWrite && !sha;
+    const out = {};
+    for (const kind of KINDS){
+      const map = new Map();
+      for (const r of data[kind]) if (r && typeof r.id === 'string') map.set(r.id, r);
+      for (const x of store[kind].get()){
+        if (sent[kind][x.id] == null) continue;
+        const old = map.get(x.id);
+        if (!old || (x.updatedAt || 0) >= (old.updatedAt || 0)){ map.set(x.id, x); changed = true; }
+      }
+      for (const t of sentTomb){
+        if (t.kind !== kind) continue;
+        const old = map.get(t.id);
+        if (old && !old.deleted && t.updatedAt >= (old.updatedAt || 0)){ map.set(t.id, { id: t.id, deleted: true, updatedAt: t.updatedAt }); changed = true; }
+      }
+      out[kind] = [...map.values()];
+    }
+    if (changed){
+      const now = new Date().toISOString();
+      const body = { message: 'Синхронизация ' + now.slice(0, 16).replace('T', ' '),
+        content: b64enc(JSON.stringify({ app: 'sto-kassa', version: 1, updatedAt: now, orders: out.orders, expenses: out.expenses }, null, 1)) };
+      if (sha) body.sha = sha;
+      const res = await ghFetch(cfg, '/contents/' + GH_FILE, 'PUT', body);
+      if (res.status === 409 || res.status === 422) throw { code: 'conflict' };
+      if (res.status === 401 || res.status === 403 || res.status === 404) throw { code: 'auth' };
+      if (!res.ok) throw { code: 'net' };
+    }
+    tomb = tomb.filter(t => !sentTomb.some(s => s.kind === t.kind && s.id === t.id && s.updatedAt === t.updatedAt));
+    for (const kind of KINDS){
+      for (const id of Object.keys(sent[kind])) if (dirty[kind][id] === sent[kind][id]) delete dirty[kind][id];
+      const keep = store[kind].get().filter(x => dirty[kind][x.id] != null);
+      const skip = new Set(keep.map(x => x.id).concat(tomb.filter(t => t.kind === kind).map(t => t.id)));
+      const merged = out[kind].filter(x => !x.deleted && !skip.has(x.id)).concat(keep);
+      store[kind].set(merged); LS.set(store[kind].ls, merged);
+    }
+    LS.set('sto-dirty', dirty); LS.set('sto-tomb', tomb); LS.set('sto-sync-at', Date.now());
+  }
+  function queueSync(ms){ clearTimeout(syncTimer); syncTimer = setTimeout(() => syncNow(), ms == null ? 1500 : ms); }
+  function markAllDirty(){
+    for (const kind of KINDS) for (const x of store[kind].get()) dirty[kind][x.id] = x.updatedAt || 0;
+    LS.set('sto-dirty', dirty);
+  }
+  async function syncNow(forceWrite){
+    clearTimeout(syncTimer);
+    if (!gh || mode !== 'local') return;
+    if (syncState === 'busy'){ syncAgain = true; return; }
+    if (navigator.onLine === false){ syncState = 'err'; syncErr = SYNC_MSG.offline; updateBackupUI(); return; }
+    syncState = 'busy'; updateBackupUI();
+    try {
+      for (let attempt = 0; ; attempt++){
+        try { await syncOnce(gh, forceWrite); break; }
+        catch (e) { if (e && e.code === 'conflict' && attempt < 3) continue; throw e; }
+      }
+      syncState = 'ok'; syncErr = '';
+    } catch (e) {
+      syncState = 'err'; syncErr = SYNC_MSG[e && e.code] || SYNC_MSG.net;
+    }
+    render();
+    if (syncAgain){ syncAgain = false; queueSync(500); }
+  }
+  async function connectSync(){
+    const repo = $('b-repo').value.trim().replace(/^https:\/\/github\.com\//, '').replace(/\.git$/, '').replace(/\/+$/, '');
+    const token = $('b-token').value.trim();
+    if (!/^[\w.-]+\/[\w.-]+$/.test(repo)){ toast('Репозиторий пишется как аккаунт/название'); return; }
+    if (!token){ toast('Вставьте ключ доступа'); return; }
+    const btn = $('b-connect'), cfg = { repo, token };
+    const fail = msg => { btn.disabled = false; btn.textContent = 'Подключить'; toast(msg); };
+    btn.disabled = true; btn.textContent = 'Подключаем…';
+    try {
+      const r = await ghFetch(cfg, '');
+      if (r.status === 401){ fail('GitHub не принял ключ. Проверьте, что он скопирован целиком'); return; }
+      if (!r.ok){ fail('Репозиторий не найден или ключ не даёт к нему доступа'); return; }
+      const info = await r.json();
+      if (info.private === false){ fail('Этот репозиторий открытый. Для данных нужен закрытый'); return; }
+    } catch { fail('Нет связи с GitHub. Проверьте интернет'); return; }
+    gh = cfg; markAllDirty(); syncState = 'idle';
+    await syncNow(true);
+    btn.disabled = false; btn.textContent = 'Подключить';
+    if (syncState === 'ok'){ LS.set('sto-gh', gh); $('b-token').value = ''; toast('Синхронизация подключена'); }
+    else { const msg = syncErr; gh = null; syncState = 'idle'; dirty = { orders: {}, expenses: {} }; LS.set('sto-dirty', dirty); toast(msg === SYNC_MSG.auth ? 'Ключу не хватает права на запись (Contents: Read and write)' : msg); }
+    render();
+  }
+  function disconnectSync(){
+    gh = null; syncState = 'idle'; dirty = { orders: {}, expenses: {} }; tomb = [];
+    LS.set('sto-gh', null); LS.set('sto-dirty', dirty); LS.set('sto-tomb', tomb);
+    render(); toast('Синхронизация отключена. Данные на устройстве остались');
+  }
+  $('b-connect').addEventListener('click', connectSync);
+  $('b-sync-now').addEventListener('click', () => syncNow());
+  $('b-disconnect').addEventListener('click', e => { if (armDelete(e.currentTarget, 'Отключить синхронизацию', 'Нажмите ещё раз, чтобы отключить')) disconnectSync(); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && gh) queueSync(400); });
+  window.addEventListener('online', () => { if (gh) queueSync(400); });
   function startLocal(){
     mode = 'local';
     for (const k of Object.keys(store)){ const v = LS.get(store[k].ls, []); store[k].set(Array.isArray(v) ? v : []); }
     try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch {}
+    if (gh) queueSync(300);
     render();
   }
   async function init(){
@@ -849,9 +1008,22 @@ input::placeholder{color:var(--fg2);opacity:.7}
     const nudge = $('backup-nudge');
     if (!local){ nudge.hidden = true; return; }
     const at = LS.get('sto-backup-at', 0), n = orders.length + expenses.length;
+    const syncAt = LS.get('sto-sync-at', 0);
+    $('btn-backup-label').textContent = !gh ? 'Копия' : syncState === 'busy' ? 'Синхр. …' : syncState === 'err' ? 'Синхр. !' : 'Синхр. ✓';
+    $('b-sync').hidden = !SYNC_ON;
+    $('b-sync-off').hidden = !!gh; $('b-sync-on').hidden = !gh;
+    if (!gh && !$('b-repo').value) $('b-repo').value = 'gbwfgkrcgq-dotcom/sto-kassa-data';
+    if (gh){
+      const when = syncAt ? new Date(syncAt).toLocaleString('ru-RU', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) : '';
+      const waiting = Object.keys(dirty.orders).length + Object.keys(dirty.expenses).length + tomb.length;
+      $('b-sync-status').innerHTML = (syncState === 'busy' ? 'Идёт синхронизация…' : syncState === 'err' ? '<b>' + esc(syncErr) + '</b>' : 'Синхронизация включена: ' + esc(gh.repo) + '.')
+        + (when ? ' Последний обмен: <b>' + esc(when) + '</b>.' : '') + (waiting ? ' Ждут отправки: <b>' + waiting + '</b>.' : '');
+    }
     const never = !at && n >= 3, old = at && n > 0 && Date.now() - at > WEEK;
-    nudge.hidden = !(never || old);
-    nudge.textContent = old ? 'Копия сохранялась больше недели назад. Сохранить сейчас' : 'Данные хранятся только на этом устройстве. Сохранить копию в файл';
+    const synced = gh && syncAt && Date.now() - syncAt < WEEK;
+    const stuck = gh && syncState === 'err';
+    nudge.hidden = stuck ? false : synced || !(never || old);
+    nudge.textContent = stuck ? syncErr : old ? 'Копия сохранялась больше недели назад. Сохранить сейчас' : 'Данные хранятся только на этом устройстве. Сохранить копию в файл';
     $('b-status').innerHTML = 'Сейчас в приложении: <b>заказов ' + orders.length + ', расходов ' + expenses.length + '</b>. '
       + (at ? 'Последняя копия: <b>' + esc(backupWhen()) + '</b>.' : 'Копия ещё ни разу не сохранялась.');
   }
@@ -882,6 +1054,7 @@ input::placeholder{color:var(--fg2);opacity:.7}
     const clean = arr => arr.filter(x => x && typeof x === 'object' && typeof x.id === 'string');
     orders = clean(data.orders); expenses = clean(data.expenses);
     LS.set('sto-orders', orders); LS.set('sto-expenses', expenses);
+    if (gh){ markAllDirty(); queueSync(300); }
     closeSheets(); render();
     toast('Загружено: заказов ' + orders.length + ', расходов ' + expenses.length);
   }
@@ -956,13 +1129,14 @@ input::placeholder{color:var(--fg2);opacity:.7}
     showSug(input.closest('.part'), items);
   }
   function suggestVehicle(input){
-    const q = input.value, digits = q.replace(/\D/g, '');
+    const isPhone = input.id === 'f-phone', q = input.value, digits = q.replace(/\D/g, '');
     const items = vehicleMemory().filter(r => {
+      if (isPhone) return digits.length >= 4 && String(r.phone).replace(/\D/g, '').includes(digits);
       const hay = low([r.car, r.plate, r.client, r.phone].join(' '));
       return matchAll(hay, q) || (digits.length >= 3 && String(r.phone).replace(/\D/g, '').includes(digits));
     }).sort((a, b) => b.count - a.count).slice(0, 4)
       .map(r => ({ label: [r.car, r.plate].filter(Boolean).join(' · ') || r.client, sub: [r.client, r.phone].filter(Boolean).join(' · '), pick(){
-        $('f-car').value = r.car; $('f-plate').value = r.plate; $('f-client').value = r.client; $('f-phone').value = r.phone;
+        $('f-car').value = r.car; $('f-plate').value = r.plate; $('f-client').value = r.client; $('f-phone').value = fmtPhone(r.phone);
         toast('Данные клиента подставлены');
       } }));
     showSug($('veh'), items);
@@ -996,6 +1170,18 @@ input::placeholder{color:var(--fg2);opacity:.7}
   }
 
   /* ---------- order sheet ---------- */
+  function fmtPhone(v){
+    v = String(v || '').trim();
+    let d = v.replace(/\D/g, '');
+    if (v.startsWith('+') ? d[0] === '7' : d.length > 10 && (d[0] === '7' || d[0] === '8')) d = d.slice(1);
+    d = d.slice(0, 10);
+    let s = '+7';
+    if (d.length) s += ' ' + d.slice(0, 3);
+    if (d.length > 3) s += ' ' + d.slice(3, 6);
+    if (d.length > 6) s += '-' + d.slice(6, 8);
+    if (d.length > 8) s += '-' + d.slice(8, 10);
+    return s;
+  }
   const blankPart = () => ({ n: '', c: 0, m: draft ? num(draft.markup) : 20 });
   function ensureTail(){
     const last = draft.parts[draft.parts.length - 1];
@@ -1013,7 +1199,7 @@ input::placeholder{color:var(--fg2);opacity:.7}
     $('f-car').value = o ? o.car || '' : '';
     $('f-plate').value = o ? o.plate || '' : '';
     $('f-client').value = o ? o.client || '' : '';
-    $('f-phone').value = o ? o.phone || '' : '';
+    $('f-phone').value = fmtPhone(o ? o.phone : '');
     $('f-date').value = draft.date;
     $('f-same').checked = draft.markupMode === 'all';
     $('f-markup').value = String(draft.markup);
@@ -1076,7 +1262,10 @@ input::placeholder{color:var(--fg2);opacity:.7}
     draft.parts.splice(+b.dataset.rm, 1); ensureTail();
     renderParts(); recalc();
   });
-  $('veh').addEventListener('input', e => { if (e.target.matches('[data-veh]')) suggestVehicle(e.target); });
+  $('veh').addEventListener('input', e => {
+    if (e.target.id === 'f-phone') e.target.value = fmtPhone(e.target.value);
+    if (e.target.matches('[data-veh]')) suggestVehicle(e.target);
+  });
   $('f-mech').addEventListener('input', e => suggestMech(e.target));
   $('f-mech').addEventListener('focus', e => suggestMech(e.target));
   $('f-mech-pct').addEventListener('input', e => { if (draft){ draft.mechPct = num(e.target.value); recalc(); } });
@@ -1099,7 +1288,7 @@ input::placeholder{color:var(--fg2);opacity:.7}
     if (!car && !plate){ toast('Укажите машину или госномер'); $('f-plate').focus(); return; }
     const each = draft.markupMode === 'each';
     const parts = draft.parts.filter(p => p.n.trim() || p.c).map(p => each ? { n: p.n.trim(), c: p.c, m: num(p.m) } : { n: p.n.trim(), c: p.c });
-    const o = { id: draft.id, car, plate, client: $('f-client').value.trim(), phone: $('f-phone').value.trim(), date: $('f-date').value || today(),
+    const o = { id: draft.id, car, plate, client: $('f-client').value.trim(), phone: $('f-phone').value.trim() === '+7' ? '' : $('f-phone').value.trim(), date: $('f-date').value || today(),
       parts, markupMode: draft.markupMode, markup: num(draft.markup), labor: num(draft.labor),
       mechanic: $('f-mech').value.trim(), mechPct: Math.min(num(draft.mechPct), 100), receipt: !!draft.receipt, createdAt: draft.createdAt };
     const btn = $('btn-save'); btn.disabled = true;
