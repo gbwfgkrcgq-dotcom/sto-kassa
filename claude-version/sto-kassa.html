@@ -274,6 +274,74 @@ input::placeholder{color:var(--fg2);opacity:.7}
   .thumb.busy::after{animation:none;top:0;height:100%;opacity:.25}
   .sw i,.sw i::after{transition:none}
 }
+
+/* ---------- v2: Liquid Glass, calmer palette, compact dashboard ---------- */
+:root{
+  --bg:#eef1f6; --blob-a:#b7d0ff; --blob-b:#ffe0bf; --blob-c:#c4efe4;
+  --glass-a:rgba(255,255,255,.62); --glass-b:rgba(255,255,255,.30); --glass-strong:rgba(255,255,255,.84);
+  --stroke:rgba(255,255,255,.95); --rim:rgba(255,255,255,.45);
+  --shadow:0 10px 30px rgba(40,55,95,.10), 0 1px 2px rgba(40,55,95,.06);
+  --alert:#c81e2b; --on-alert:#ffffff;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0b0d12; --blob-a:#1b3f8f; --blob-b:#6b3a16; --blob-c:#0f5249;
+    --glass-a:rgba(255,255,255,.11); --glass-b:rgba(255,255,255,.04); --glass-strong:rgba(34,38,52,.88);
+    --stroke:rgba(255,255,255,.22); --rim:rgba(255,255,255,.07);
+    --shadow:0 12px 34px rgba(0,0,0,.45);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0b0d12; --blob-a:#1b3f8f; --blob-b:#6b3a16; --blob-c:#0f5249;
+  --glass-a:rgba(255,255,255,.11); --glass-b:rgba(255,255,255,.04); --glass-strong:rgba(34,38,52,.88);
+  --stroke:rgba(255,255,255,.22); --rim:rgba(255,255,255,.07);
+  --shadow:0 12px 34px rgba(0,0,0,.45);
+}
+html{background:var(--bg);min-height:calc(100% + env(safe-area-inset-top, 0px))}
+body{min-height:100vh;min-height:100dvh}
+.field-bg{bottom:auto;height:100vh;height:100lvh}
+.field-bg i{opacity:.55;filter:blur(80px)}
+.glass{
+  background:linear-gradient(135deg,var(--glass-a),var(--glass-b));
+  -webkit-backdrop-filter:blur(22px) saturate(190%);
+  backdrop-filter:blur(22px) saturate(190%);
+  border:1px solid var(--rim);
+  box-shadow:var(--shadow), inset 0 1px 0 var(--stroke), inset 0 -1px 0 var(--rim), inset 1px 0 0 var(--rim), inset -1px 0 0 var(--rim);
+}
+.seg{grid-template-columns:repeat(5,1fr)}
+.seg button{font-size:13px;padding:8px 2px}
+.range{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 14px;border-radius:var(--r-l)}
+.range label{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--fg2);min-width:0}
+.range input{flex:1;min-width:0;height:38px;border-radius:12px;border:0;background:var(--field);padding:0 8px;font-size:15px}
+.card.sum{padding:14px 16px;gap:10px;border-radius:24px}
+.card.sum .label{font-size:13px}
+.card.sum .hero{font-size:30px;margin-top:0}
+.card.sum .split{height:6px}
+.stats.four{grid-template-columns:repeat(4,1fr);gap:8px}
+.stats.four dt{font-size:10.5px;gap:4px}
+.stats.four dt b{width:6px;height:6px}
+.stats.four dd{font-size:13.5px;margin-top:2px}
+.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.act{height:64px;border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;font-weight:650;color:var(--fg);transition:transform .12s}
+.act svg{width:24px;height:24px;color:var(--accent)}
+.act:active{transform:scale(.97)}
+.act.off{opacity:.45}
+.lic{border-radius:var(--r-m);padding:12px 14px;font-size:14px;font-weight:650;color:var(--on-alert);background:var(--alert)}
+.paid{margin:4px 0 0;text-align:center;font-size:13px;color:var(--fg2)}
+.dock-in{justify-content:center}
+.tabs button[aria-selected="true"]{box-shadow:inset 0 1px 0 var(--stroke), 0 2px 10px var(--edge)}
+.photo-btn{width:40px;height:40px;padding:0;justify-content:center;background:var(--field);color:var(--fg2);position:relative}
+.photo-btn svg{width:20px;height:20px}
+.photo-btn.has{color:var(--accent)}
+.photo-btn.has::after{content:"";position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--good)}
+.photo-box{border-radius:var(--r-m);background:var(--field);min-height:120px;display:flex;align-items:center;justify-content:center;padding:10px;overflow:hidden}
+.photo-box img{max-width:100%;max-height:60vh;border-radius:10px;display:block}
+.top > div:first-child{min-width:0}
+h1{font-size:28px;white-space:nowrap}
+.eyebrow{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.iconbtn{font-size:13px;padding:0 10px}
+@media (max-width:360px){ .stats.four{grid-template-columns:1fr 1fr} }
+@media (prefers-reduced-motion: reduce){ .act{transition:none} }
 </style>
 
 <div class="field-bg" aria-hidden="true"><i></i><i></i><i></i></div>
@@ -305,41 +373,59 @@ input::placeholder{color:var(--fg2);opacity:.7}
     <button type="button" role="tab" data-p="week">7 дней</button>
     <button type="button" role="tab" data-p="month">Месяц</button>
     <button type="button" role="tab" data-p="all">Всё</button>
+    <button type="button" role="tab" data-p="custom">Период</button>
+  </div>
+  <div class="range glass" id="range" hidden>
+    <label><span>С</span><input type="date" id="r-from"></label>
+    <label><span>По</span><input type="date" id="r-to"></label>
   </div>
 
   <div class="notice glass" id="notice" hidden></div>
   <button type="button" class="nudge glass" id="backup-nudge" hidden></button>
+  <div class="lic" id="lic" role="alert" hidden></div>
+
+  <div class="actions" id="actions">
+    <button type="button" class="act glass" id="act-order">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l1.600-4.400A2 2 0 0 1 8.500 6.300h7a2 2 0 0 1 1.900 1.300L19 12"/><rect x="3.500" y="12" width="17" height="5.500" rx="1.800"/><path d="M7 17.500v1.500M17 17.500v1.500"/></svg>
+      <span>Заказ</span>
+    </button>
+    <button type="button" class="act glass" id="act-exp">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.500 7H6a2.500 2.500 0 0 0-2.500 2.500v7A2.500 2.500 0 0 0 6 19h11a2.500 2.500 0 0 0 2.500-2.500V12"/><path d="M15.500 3.500h5v5M20.500 3.500l-6 6"/><circle cx="15.500" cy="14.500" r="1.100" fill="currentColor" stroke="none"/></svg>
+      <span>Расход</span>
+    </button>
+    <button type="button" class="act glass" id="act-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.500"/><path d="M16 16l4 4"/></svg>
+      <span>Поиск</span>
+    </button>
+  </div>
+
 
   <!-- Заказы -->
   <div class="view" id="view-orders">
-    <section class="card glass" aria-live="polite">
+    <section class="card sum glass" aria-live="polite">
       <div>
         <p class="label" id="sum-label">Чистая прибыль</p>
         <p class="hero" id="sum-profit">0</p>
       </div>
       <div class="split" id="sum-split" aria-hidden="true"></div>
-      <dl class="stats">
-        <div><dt>Взято с клиентов</dt><dd id="sum-total">0</dd></div>
-        <div><dt><b style="background:var(--seg-cost)"></b>Запчасти, закупка</dt><dd id="sum-cost">0</dd></div>
+      <dl class="stats four">
+        <div><dt>С клиентов</dt><dd id="sum-total">0</dd></div>
+        <div><dt><b style="background:var(--seg-cost)"></b>Запчасти</dt><dd id="sum-cost">0</dd></div>
         <div><dt><b style="background:var(--seg-mech)"></b>Мастерам</dt><dd id="sum-mech">0</dd></div>
-        <div><dt><b style="background:var(--seg-exp)"></b>Расходы СТО</dt><dd id="sum-exp">0</dd></div>
+        <div><dt><b style="background:var(--seg-exp)"></b>Расходы</dt><dd id="sum-exp">0</dd></div>
       </dl>
     </section>
-    <button type="button" class="btn glass quick" id="btn-quick-exp">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-      Внести расход СТО
-    </button>
-    <label class="search glass">
+    <label class="search glass" id="search-bar" hidden>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg>
       <input type="text" id="q" placeholder="Поиск: номер, машина, клиент, запчасть" autocomplete="off" aria-label="Поиск по заказам">
-      <button type="button" id="q-clear" aria-label="Очистить поиск" hidden>×</button>
+      <button type="button" id="q-clear" aria-label="Закрыть поиск">×</button>
     </label>
     <section id="list" class="stack" aria-label="Заказы"></section>
   </div>
 
   <!-- Расходы -->
   <div class="view" id="view-exp" hidden>
-    <section class="card glass" aria-live="polite">
+    <section class="card sum glass" aria-live="polite">
       <div>
         <p class="label" id="exp-label">Расходы СТО</p>
         <p class="hero" id="exp-total">0</p>
@@ -352,6 +438,7 @@ input::placeholder{color:var(--fg2);opacity:.7}
 
   <!-- Аналитика -->
   <div class="view" id="view-stats" hidden></div>
+  <p class="paid" id="paid-line" hidden></p>
 </main>
 
 <nav class="dock" aria-label="Разделы">
@@ -370,9 +457,6 @@ input::placeholder{color:var(--fg2);opacity:.7}
         Аналитика
       </button>
     </div>
-    <button type="button" class="add" id="btn-add" aria-label="Новый заказ">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-    </button>
   </div>
 </nav>
 
@@ -383,7 +467,10 @@ input::placeholder{color:var(--fg2);opacity:.7}
   <div class="grab" aria-hidden="true"></div>
   <div class="sheet-head">
     <h2 id="sheet-title">Новый заказ</h2>
-    <button type="button" class="link" data-close>Закрыть</button>
+    <div class="head-actions">
+      <button type="button" class="iconbtn photo-btn" id="btn-photo-view" aria-label="Фото чека" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.500A2.500 2.500 0 0 1 6.500 6h1.200l1.200-1.800h6.200L16.300 6h1.200A2.500 2.500 0 0 1 20 8.500v8a2.500 2.500 0 0 1-2.500 2.500h-11A2.500 2.500 0 0 1 4 16.500z"/><circle cx="12" cy="12.500" r="3.400"/></svg></button>
+      <button type="button" class="link" data-close>Закрыть</button>
+    </div>
   </div>
   <form id="form" novalidate>
     <div class="fields" id="veh">
@@ -497,6 +584,35 @@ input::placeholder{color:var(--fg2);opacity:.7}
 </section>
 <input type="file" id="backup-file" accept=".json,application/json" hidden>
 
+<!-- Фото чека: вопрос после сохранения -->
+<section class="sheet" id="psheet" role="dialog" aria-modal="true" aria-labelledby="psheet-title" hidden>
+  <div class="grab" aria-hidden="true"></div>
+  <div class="sheet-head"><h2 id="psheet-title">Заказ сохранён</h2></div>
+  <div class="block" style="gap:12px">
+    <p class="btext">Прикрепить к заказу фото чека на запчасти?</p>
+    <button type="button" class="btn primary" id="p-cam">Сфотографировать чек</button>
+    <button type="button" class="btn soft" id="p-pick">Выбрать фото из галереи</button>
+    <button type="button" class="btn" id="p-skip">Пропустить</button>
+  </div>
+</section>
+
+<!-- Фото чека: просмотр -->
+<section class="sheet" id="vsheet" role="dialog" aria-modal="true" aria-labelledby="vsheet-title" hidden>
+  <div class="grab" aria-hidden="true"></div>
+  <div class="sheet-head">
+    <h2 id="vsheet-title">Фото чека</h2>
+    <button type="button" class="link" id="v-close">Закрыть</button>
+  </div>
+  <div class="block" style="gap:12px">
+    <div class="photo-box"><img id="v-img" alt="Фото чека" hidden><p class="btext" id="v-msg"></p></div>
+    <button type="button" class="btn soft" id="v-cam">Сфотографировать чек</button>
+    <button type="button" class="btn soft" id="v-pick">Выбрать фото из галереи</button>
+    <button type="button" class="btn danger" id="v-delete" hidden>Удалить фото</button>
+  </div>
+</section>
+<input type="file" id="photo-cam" accept="image/*" capture="environment" hidden>
+<input type="file" id="photo-pick" accept="image/*" hidden>
+
 <div class="toast glass" id="toast" role="status" hidden></div>
 <input type="file" id="receipt-file" accept="image/*" capture="environment" hidden>
 
@@ -516,7 +632,14 @@ input::placeholder{color:var(--fg2);opacity:.7}
   const daysAgo = n => { const d = new Date(); d.setDate(d.getDate() - n); return iso(d); };
   const newId = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
-  const PERIODS = { today: 'сегодня', week: 'за 7 дней', month: 'за месяц', all: 'за всё время' };
+  const PERIODS = { today: 'сегодня', week: 'за 7 дней', month: 'за месяц', all: 'за всё время', custom: 'за период' };
+  let range = LS.get('sto-range', null); if (!range || typeof range.from !== 'string' || typeof range.to !== 'string') range = { from: '', to: '' };
+  const shortDate = d => { const t = new Date(d + 'T00:00'); return isNaN(t) ? '' : t.toLocaleDateString('ru-RU', { day: 'numeric', month: 'numeric' }); };
+  function periodText(){
+    if (period !== 'custom') return PERIODS[period];
+    const a = shortDate(range.from), b = shortDate(range.to);
+    return a && b ? 'с ' + a + ' по ' + b : a ? 'с ' + a : b ? 'по ' + b : 'за всё время';
+  }
   const CATS = ['Аренда', 'Зарплата', 'Расходники', 'Инструмент', 'Коммуналка', 'Прочее'];
   const EYEBROW = { orders: 'Заказы, запчасти, прибыль', exp: 'Общие расходы СТО', stats: 'Аналитика' };
 
@@ -547,6 +670,7 @@ input::placeholder{color:var(--fg2);opacity:.7}
   function inPeriod(d){
     d = d || '';
     if (period === 'all') return true;
+    if (period === 'custom') return (!range.from || d >= range.from) && (!range.to || d <= range.to);
     if (period === 'today') return d === today();
     if (period === 'week') return d >= daysAgo(6) && d <= today();
     return d.slice(0, 7) === today().slice(0, 7);
@@ -579,9 +703,13 @@ input::placeholder{color:var(--fg2);opacity:.7}
     $('view-exp').hidden = tab !== 'exp';
     $('view-stats').hidden = tab !== 'stats';
     $('eyebrow').textContent = EYEBROW[tab];
-    $('btn-add').setAttribute('aria-label', tab === 'exp' ? 'Новый расход' : 'Новый заказ');
+    $('range').hidden = period !== 'custom';
+    $('search-bar').hidden = !searchOpen || tab !== 'orders';
+    const act = $('actions'), view = $(tab === 'orders' ? 'view-orders' : tab === 'exp' ? 'view-exp' : 'view-stats');
+    const card = tab === 'stats' ? null : view.querySelector('.card');
+    if (card){ if (act.previousElementSibling !== card) card.after(act); } else if (act.nextElementSibling !== view) view.before(act);
     const data = totals();
-    updateBackupUI();
+    updateBackupUI(); updateLicenseUI();
     if (tab === 'orders') renderOrders(data);
     else if (tab === 'exp') renderExpenses(data);
     else renderStats(data);
@@ -590,7 +718,7 @@ input::placeholder{color:var(--fg2);opacity:.7}
   function emptyBox(title, text){ return '<div class="empty glass"><strong>' + esc(title) + '</strong>' + esc(text) + '</div>'; }
 
   function renderOrders({ t, os }){
-    $('sum-label').textContent = 'Чистая прибыль ' + PERIODS[period];
+    $('sum-label').textContent = 'Чистая прибыль ' + periodText();
     const p = $('sum-profit'); p.textContent = money(t.net);
     p.classList.toggle('pos', t.net > 0); p.classList.toggle('neg', t.net < 0);
     $('sum-total').textContent = money(t.total);
@@ -653,7 +781,7 @@ input::placeholder{color:var(--fg2);opacity:.7}
   }
 
   function renderExpenses({ t, es }){
-    $('exp-label').textContent = 'Расходы СТО ' + PERIODS[period];
+    $('exp-label').textContent = 'Расходы СТО ' + periodText();
     $('exp-total').textContent = money(t.exp);
     const cats = sumBy(es, e => e.cat || 'Прочее', e => num(e.amount));
     $('exp-cats').innerHTML = rankHTML(cats.map(([k, v]) => ({ name: k, value: money(v), raw: v, sub: t.exp ? pctText(v / t.exp * 100) + ' расходов' : '' })), cats.length ? cats[0][1] : 0);
@@ -683,7 +811,15 @@ input::placeholder{color:var(--fg2);opacity:.7}
 
   function chartSeries(os){
     const out = [];
-    if (period === 'all'){
+    if (period === 'custom' && range.from && range.to && range.to >= range.from){
+      const a = new Date(range.from + 'T00:00'), n = Math.round((new Date(range.to + 'T00:00') - a) / 864e5) + 1;
+      if (n <= 62){
+        for (let i = 0; i < n; i++){ const dt = new Date(a.getFullYear(), a.getMonth(), a.getDate() + i); out.push({ key: iso(dt), label: dt.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }), short: String(dt.getDate()), v: 0 }); }
+        for (const o of os){ const b = out.find(x => x.key === o.date); if (b) b.v += calc(o).profit; }
+        return { bars: out, title: 'Прибыль с заказов по дням' };
+      }
+    }
+    if (period === 'all' || period === 'custom'){
       const now = new Date();
       for (let i = 11; i >= 0; i--){
         const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -717,7 +853,7 @@ input::placeholder{color:var(--fg2);opacity:.7}
     const partsRev = t.cost + t.markup;
     const margin = t.total ? t.net / t.total * 100 : 0;
     let html = '<div class="tiles">'
-      + '<div class="tile glass"><p>Выручка ' + PERIODS[period] + '</p><strong>' + esc(money(t.total)) + '</strong></div>'
+      + '<div class="tile glass"><p>Выручка ' + periodText() + '</p><strong>' + esc(money(t.total)) + '</strong></div>'
       + '<div class="tile glass"><p>Чистая прибыль</p><strong>' + esc(money(t.net)) + '</strong></div>'
       + '<div class="tile glass"><p>Средний чек</p><strong>' + esc(money(t.count ? t.total / t.count : 0)) + '</strong></div>'
       + '<div class="tile glass"><p>Заказов · маржа</p><strong>' + t.count + ' · ' + esc(pctText(margin)) + '</strong></div>'
@@ -857,6 +993,7 @@ input::placeholder{color:var(--fg2);opacity:.7}
       const r = await fetch(API, { cache: 'no-store' });
       const j = r.ok ? await r.json() : null;
       srvInfo = j && j.ok && j.app === 'sto-kassa' ? { ready: !!j.ready } : false;
+      if (srvInfo && setPaid(typeof j.paidUntil === 'string' ? j.paidUntil : '')) updateLicenseUI();
     } catch { srvInfo = navigator.onLine === false ? null : false; }
     updateBackupUI();
     return srvInfo;
@@ -873,7 +1010,9 @@ input::placeholder{color:var(--fg2);opacity:.7}
     let data = null; try { data = await res.json(); } catch {}
     if (res.status === 401) throw { code: 'auth' };
     if (data && (data.error === 'storage' || data.error === 'corrupt')) throw { code: 'storage' };
-    if (res.ok && data && data.ok && data.same){ LS.set('sto-sync-at', Date.now()); return false; }
+    const paidChanged = !!(data && data.ok && typeof data.paidUntil === 'string' && setPaid(data.paidUntil));
+    if (res.ok && data && data.ok && data.locked && !idle){ LS.set('sto-sync-at', Date.now()); return true; }
+    if (res.ok && data && data.ok && data.same){ LS.set('sto-sync-at', Date.now()); return paidChanged; }
     if (!res.ok || !data || !data.ok || !Array.isArray(data.orders) || !Array.isArray(data.expenses)) throw { code: 'net' };
     tomb = tomb.filter(t => !sentTomb.some(s => s.kind === t.kind && s.id === t.id && s.updatedAt === t.updatedAt));
     for (const kind of KINDS){
@@ -884,6 +1023,7 @@ input::placeholder{color:var(--fg2);opacity:.7}
       store[kind].set(merged); LS.set(store[kind].ls, merged);
     }
     LS.set('sto-dirty', dirty); LS.set('sto-tomb', tomb); LS.set('sto-sync-at', Date.now()); LS.set('sto-rev', typeof data.rev === 'string' ? data.rev : '');
+    uploadPhotos();
     return true;
   }
   function queueSync(ms){ clearTimeout(syncTimer); syncTimer = setTimeout(() => syncNow(), ms == null ? 700 : ms); }
@@ -936,7 +1076,8 @@ input::placeholder{color:var(--fg2);opacity:.7}
     mode = 'local';
     for (const k of Object.keys(store)){ const v = LS.get(store[k].ls, []); store[k].set(Array.isArray(v) ? v : []); }
     try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch {}
-    if (srv) queueSync(300); else if (SYNC_ON) probeServer();
+    if (srv) queueSync(300);
+    if (SYNC_ON) probeServer();
     render();
   }
   async function init(){
@@ -978,7 +1119,7 @@ input::placeholder{color:var(--fg2);opacity:.7}
     if (!local){ nudge.hidden = true; return; }
     const at = LS.get('sto-backup-at', 0), n = orders.length + expenses.length;
     const syncAt = LS.get('sto-sync-at', 0);
-    $('btn-backup-label').textContent = !srv ? 'Копия' : syncState === 'busy' ? 'Синхр. …' : syncState === 'err' ? 'Синхр. !' : 'Синхр. ✓';
+    $('btn-backup-label').textContent = !srv ? 'Копия' : syncState === 'busy' ? '…' : syncState === 'err' ? 'Нет связи' : 'Сохранено';
     $('b-sync').hidden = !SYNC_ON;
     $('b-sync-off').hidden = !!srv; $('b-sync-on').hidden = !srv;
     $('b-sync-form').hidden = srvInfo === false;
@@ -1022,6 +1163,7 @@ input::placeholder{color:var(--fg2);opacity:.7}
   }
   async function importBackup(file){
     let data;
+    if (!guard()) return;
     try { data = JSON.parse(await file.text()); } catch { toast('Это не файл копии'); return; }
     if (!data || !Array.isArray(data.orders) || !Array.isArray(data.expenses)){ toast('Это не файл копии СТО Касса'); return; }
     const clean = arr => arr.filter(x => x && typeof x === 'object' && typeof x.id === 'string');
@@ -1131,7 +1273,7 @@ input::placeholder{color:var(--fg2);opacity:.7}
   }
   function closeSheets(){
     scanToken++; draft = null; edraft = null; hideSug();
-    $('scrim').hidden = true; $('sheet').hidden = true; $('esheet').hidden = true; $('bsheet').hidden = true;
+    $('scrim').hidden = true; $('sheet').hidden = true; $('esheet').hidden = true; $('bsheet').hidden = true; $('psheet').hidden = true; closePhotoView(); photoTarget = null;
     document.documentElement.classList.remove('locked');
     if (thumbUrl){ URL.revokeObjectURL(thumbUrl); thumbUrl = null; }
   }
@@ -1167,6 +1309,7 @@ input::placeholder{color:var(--fg2);opacity:.7}
       ? { id: o.id, date: o.date || today(), parts: (o.parts || []).map(p => ({ n: p.n || '', c: num(p.c), m: p.m == null ? num(o.markup) : num(p.m) })), markupMode: o.markupMode === 'each' ? 'each' : 'all', markup: num(o.markup), labor: num(o.labor), mechPct: num(o.mechPct), receipt: !!o.receipt, createdAt: o.createdAt || Date.now(), isNew: false }
       : { id: newId('o'), date: today(), parts: [], markupMode: 'all', markup: num(lastMarkup) || 0, labor: 0, mechPct: 0, receipt: false, createdAt: Date.now(), isNew: true };
     ensureTail();
+    draft.photo = o && o.photo ? o.photo : 0;
     scanToken++;
     $('sheet-title').textContent = draft.isNew ? 'Новый заказ' : 'Заказ';
     $('f-car').value = o ? o.car || '' : '';
@@ -1182,6 +1325,7 @@ input::placeholder{color:var(--fg2);opacity:.7}
     $('scanbox').hidden = true;
     $('btn-photo').disabled = false;
     $('btn-photo').hidden = !window.claude;   // без Claude распознавать чек нечем
+    markPhotoBtn();
     const del = $('btn-delete'); del.hidden = draft.isNew; del.textContent = 'Удалить заказ'; del.dataset.armed = '';
     $('btn-save').disabled = false;
     renderParts(); recalc();
@@ -1256,21 +1400,25 @@ input::placeholder{color:var(--fg2);opacity:.7}
   $('f-labor').addEventListener('input', e => { if (draft){ draft.labor = num(e.target.value); recalc(); } });
 
   $('form').addEventListener('submit', async e => {
-    e.preventDefault(); if (!draft) return;
+    e.preventDefault(); if (!draft || !guard()) return;
     const car = $('f-car').value.trim(), plate = $('f-plate').value.trim().toUpperCase();
     if (!car && !plate){ toast('Укажите машину или госномер'); $('f-plate').focus(); return; }
     const each = draft.markupMode === 'each';
     const parts = draft.parts.filter(p => p.n.trim() || p.c).map(p => each ? { n: p.n.trim(), c: p.c, m: num(p.m) } : { n: p.n.trim(), c: p.c });
     const o = { id: draft.id, car, plate, client: $('f-client').value.trim(), phone: $('f-phone').value.trim() === '+7' ? '' : $('f-phone').value.trim(), date: $('f-date').value || today(),
       parts, markupMode: draft.markupMode, markup: num(draft.markup), labor: num(draft.labor),
-      mechanic: $('f-mech').value.trim(), mechPct: Math.min(num(draft.mechPct), 100), receipt: !!draft.receipt, createdAt: draft.createdAt };
+      mechanic: $('f-mech').value.trim(), mechPct: Math.min(num(draft.mechPct), 100), receipt: !!draft.receipt, photo: draft.photo || 0, createdAt: draft.createdAt };
     const btn = $('btn-save'); btn.disabled = true;
-    try { await saveDoc('orders', o); if (!each) LS.set('sto-markup', o.markup); closeSheets(); toast('Заказ сохранён'); }
+    try {
+      await saveDoc('orders', o); if (!each) LS.set('sto-markup', o.markup); closeSheets();
+      if (PHOTO_ON && !o.photo) openPhotoPrompt(o.id); else toast('Заказ сохранён');
+    }
     catch { btn.disabled = false; toast('Не удалось сохранить. Попробуйте ещё раз.'); }
   });
   $('btn-delete').addEventListener('click', async e => {
-    if (!draft || !armDelete(e.currentTarget, 'Удалить заказ')) return;
-    try { await removeDoc('orders', draft.id); closeSheets(); toast('Заказ удалён'); }
+    if (!draft || !guard() || !armDelete(e.currentTarget, 'Удалить заказ')) return;
+    const gone = draft.id;
+    try { await removeDoc('orders', gone); if (PHOTO_ON) dropPhoto(gone); closeSheets(); toast('Заказ удалён'); }
     catch { toast('Не удалось удалить'); }
   });
 
@@ -1293,7 +1441,7 @@ input::placeholder{color:var(--fg2);opacity:.7}
   }
   $('e-cats').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b || !edraft) return; edraft.cat = b.dataset.c; renderCats(); });
   $('eform').addEventListener('submit', async e => {
-    e.preventDefault(); if (!edraft) return;
+    e.preventDefault(); if (!edraft || !guard()) return;
     const amount = num($('e-amount').value);
     if (!amount){ toast('Укажите сумму'); $('e-amount').focus(); return; }
     const x = { id: edraft.id, cat: edraft.cat, amount, note: $('e-note').value.trim(), date: $('e-date').value || today(), createdAt: edraft.createdAt };
@@ -1302,7 +1450,7 @@ input::placeholder{color:var(--fg2);opacity:.7}
     catch { btn.disabled = false; toast('Не удалось сохранить. Попробуйте ещё раз.'); }
   });
   $('e-delete').addEventListener('click', async e => {
-    if (!edraft || !armDelete(e.currentTarget, 'Удалить расход')) return;
+    if (!edraft || !guard() || !armDelete(e.currentTarget, 'Удалить расход')) return;
     try { await removeDoc('expenses', edraft.id); closeSheets(); toast('Расход удалён'); }
     catch { toast('Не удалось удалить'); }
   });
@@ -1365,9 +1513,163 @@ input::placeholder{color:var(--fg2);opacity:.7}
   fileInput.addEventListener('change', () => { const f = fileInput.files && fileInput.files[0]; fileInput.value = ''; if (f) scan(f); });
   $('btn-photo').addEventListener('click', () => fileInput.click());
 
+  /* ---------- paid-until date (lives on the server; standalone app only) ---------- */
+  let paidUntil = SYNC_ON ? LS.get('sto-paid', '') : '';
+  function setPaid(v){
+    if (typeof v !== 'string' || v === paidUntil || (v && !/^\d{4}-\d{2}-\d{2}$/.test(v))) return false;
+    paidUntil = v; LS.set('sto-paid', v); return true;
+  }
+  function daysLeft(){ return paidUntil ? Math.round((new Date(paidUntil + 'T00:00') - new Date(today() + 'T00:00')) / 864e5) : null; }
+  function locked(){ const d = daysLeft(); return d !== null && d < 0; }
+  function guard(){ if (!locked()) return true; toast('Срок оплаты истёк. Вносить новые данные нельзя'); return false; }
+  function daysWord(n){ const a = n % 10, b = n % 100; return n + ' ' + (a === 1 && b !== 11 ? 'день' : a >= 2 && a <= 4 && (b < 12 || b > 14) ? 'дня' : 'дней'); }
+  function updateLicenseUI(){
+    const box = $('lic'), line = $('paid-line'), d = daysLeft();
+    $('act-order').classList.toggle('off', d !== null && d < 0); $('act-exp').classList.toggle('off', d !== null && d < 0);
+    if (d === null){ box.hidden = true; line.hidden = true; return; }
+    const date = new Date(paidUntil + 'T00:00').toLocaleDateString('ru-RU');
+    line.hidden = false; line.textContent = 'Оплачено до ' + date;
+    box.hidden = d > 5;
+    box.textContent = d < 0 ? 'Срок оплаты истёк ' + date + '. Данные можно смотреть, вносить новые нельзя. Обратитесь к разработчику.'
+      : d === 0 ? 'Оплата заканчивается сегодня. С завтрашнего дня вносить новые данные будет нельзя.'
+      : 'До конца оплаты ' + daysWord(d) + '. Оплачено до ' + date + '.';
+  }
+
+  /* ---------- receipt photos (standalone app only) ---------- */
+  const PHOTO_ON = SYNC_ON && 'indexedDB' in window;
+  let photoTarget = null, viewUrl = null, idbP = null;
+  let photoQueue = LS.get('sto-photo-up', []); if (!Array.isArray(photoQueue)) photoQueue = [];
+  function idb(){
+    return idbP || (idbP = new Promise((res, rej) => {
+      const r = indexedDB.open('sto-kassa', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('photos');
+      r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+    }));
+  }
+  function idbReq(mode, fn){
+    return idb().then(d => new Promise((res, rej) => {
+      const t = d.transaction('photos', mode), q = fn(t.objectStore('photos'));
+      t.oncomplete = () => res(q.result); t.onerror = t.onabort = () => rej(t.error);
+    }));
+  }
+  const photoGet = id => idbReq('readonly', s => s.get(id)).catch(() => null);
+  const photoPut = (id, rec) => idbReq('readwrite', s => s.put(rec, id));
+  const photoDel = id => idbReq('readwrite', s => s.delete(id)).catch(() => {});
+  const keyHeader = () => ({ 'X-Kassa-Key': encodeURIComponent(srv.password) });
+  const photoUrl = id => API + '?photo=' + encodeURIComponent(id);
+  async function shrink(file){
+    const url = URL.createObjectURL(file);
+    try {
+      const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+      const k = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(img.naturalWidth * k)); c.height = Math.max(1, Math.round(img.naturalHeight * k));
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      const blob = await new Promise(res => c.toBlob(res, 'image/jpeg', 0.72));
+      return blob ? await blob.arrayBuffer() : null;
+    } finally { URL.revokeObjectURL(url); }
+  }
+  async function uploadPhotos(){
+    if (!srv || !photoQueue.length || navigator.onLine === false) return;
+    for (const id of photoQueue.slice()){
+      const rec = await photoGet(id);
+      if (rec && rec.b){
+        try {
+          const r = await fetch(photoUrl(id), { method: 'POST', headers: { 'Content-Type': 'image/jpeg', ...keyHeader() }, body: rec.b });
+          if (!r.ok && r.status !== 400 && r.status !== 413) return;
+        } catch { return; }
+      }
+      photoQueue = photoQueue.filter(x => x !== id); LS.set('sto-photo-up', photoQueue);
+    }
+  }
+  function dropPhoto(id){
+    photoDel(id);
+    photoQueue = photoQueue.filter(x => x !== id); LS.set('sto-photo-up', photoQueue);
+    if (srv && navigator.onLine !== false) fetch(photoUrl(id) + '&del=1', { method: 'POST', headers: keyHeader() }).catch(() => {});
+  }
+  async function attachPhoto(id, file){
+    if (!guard()) return false;
+    const o = orders.find(x => x.id === id); if (!o) return false;
+    let buf = null; try { buf = await shrink(file); } catch {}
+    if (!buf){ toast('Не получилось прочитать фото. Попробуйте другое'); return false; }
+    const v = Date.now();
+    try { await photoPut(id, { b: buf, v }); } catch { toast('На устройстве не хватило места для фото'); return false; }
+    await saveDoc('orders', { ...o, photo: v, receipt: true });
+    if (draft && draft.id === id){ draft.photo = v; draft.receipt = true; markPhotoBtn(); }
+    if (!photoQueue.includes(id)){ photoQueue.push(id); LS.set('sto-photo-up', photoQueue); }
+    uploadPhotos();
+    return true;
+  }
+  function markPhotoBtn(){
+    const b = $('btn-photo-view');
+    b.hidden = !PHOTO_ON || !draft || draft.isNew;
+    b.classList.toggle('has', !!(draft && draft.photo));
+  }
+  async function openPhotoView(){
+    if (!draft) return;
+    const id = draft.id, want = draft.photo, img = $('v-img'), msg = $('v-msg'), del = $('v-delete');
+    img.hidden = true; msg.hidden = false;
+    del.hidden = !want; del.textContent = 'Удалить фото'; del.dataset.armed = '';
+    $('v-cam').textContent = want ? 'Переснять чек' : 'Сфотографировать чек';
+    msg.textContent = want ? 'Загружаем фото…' : 'К этому заказу фото чека ещё не прикреплено.';
+    $('vsheet').hidden = false; $('vsheet').scrollTop = 0;
+    if (!want) return;
+    let rec = await photoGet(id);
+    if ((!rec || rec.v !== want) && srv && navigator.onLine !== false){
+      try {
+        const r = await fetch(photoUrl(id) + '&v=' + want, { cache: 'no-store', headers: keyHeader() });
+        if (r.ok){ rec = { b: await r.arrayBuffer(), v: want }; photoPut(id, rec).catch(() => {}); }
+      } catch {}
+    }
+    if (!draft || draft.id !== id || $('vsheet').hidden) return;
+    if (!rec || !rec.b){
+      msg.textContent = srv ? 'Фото пока не дошло до сервера с другого устройства, или нет интернета.' : 'Фото хранится на другом устройстве. Включите синхронизацию, чтобы видеть его здесь.';
+      return;
+    }
+    if (viewUrl) URL.revokeObjectURL(viewUrl);
+    viewUrl = URL.createObjectURL(new Blob([rec.b], { type: 'image/jpeg' }));
+    img.src = viewUrl; img.hidden = false; msg.hidden = true;
+  }
+  function closePhotoView(){ $('vsheet').hidden = true; if (viewUrl){ URL.revokeObjectURL(viewUrl); viewUrl = null; } }
+  function openPhotoPrompt(id){ photoTarget = id; showSheet($('psheet')); }
+  async function onPhotoFile(e){
+    const f = e.target.files && e.target.files[0]; e.target.value = '';
+    const id = photoTarget; if (!f || !id) return;
+    const fromPrompt = !$('psheet').hidden;
+    if (!(await attachPhoto(id, f))) return;
+    toast('Фото чека прикреплено');
+    if (fromPrompt) closeSheets(); else if (!$('vsheet').hidden) openPhotoView();
+  }
+  $('photo-cam').addEventListener('change', onPhotoFile);
+  $('photo-pick').addEventListener('change', onPhotoFile);
+  $('p-cam').addEventListener('click', () => $('photo-cam').click());
+  $('p-pick').addEventListener('click', () => $('photo-pick').click());
+  $('p-skip').addEventListener('click', () => { closeSheets(); toast('Заказ сохранён'); });
+  $('btn-photo-view').addEventListener('click', openPhotoView);
+  $('v-close').addEventListener('click', closePhotoView);
+  $('v-cam').addEventListener('click', () => { if (draft && guard()){ photoTarget = draft.id; $('photo-cam').click(); } });
+  $('v-pick').addEventListener('click', () => { if (draft && guard()){ photoTarget = draft.id; $('photo-pick').click(); } });
+  $('v-delete').addEventListener('click', async e => {
+    if (!draft || !guard() || !armDelete(e.currentTarget, 'Удалить фото')) return;
+    const id = draft.id, o = orders.find(x => x.id === id);
+    try { if (o) await saveDoc('orders', { ...o, photo: 0 }); } catch { toast('Не удалось удалить фото'); return; }
+    draft.photo = 0; dropPhoto(id); closePhotoView(); markPhotoBtn(); toast('Фото удалено');
+  });
+
+  /* ---------- search and custom period ---------- */
+  let searchOpen = false;
+  function openSearch(){ if (tab !== 'orders'){ tab = 'orders'; LS.set('sto-tab', tab); } searchOpen = true; render(); $('q').focus(); }
+  function closeSearch(){ searchOpen = false; query = ''; $('q').value = ''; render(); }
+  $('act-order').addEventListener('click', () => { if (guard()) openOrder(null); });
+  $('act-exp').addEventListener('click', () => { if (guard()) openExpense(null); });
+  $('act-search').addEventListener('click', () => searchOpen ? closeSearch() : openSearch());
+  $('q').addEventListener('input', e => { query = e.target.value; render(); });
+  $('q-clear').addEventListener('click', closeSearch);
+  $('r-from').value = range.from; $('r-to').value = range.to;
+  const onRange = () => { range = { from: $('r-from').value, to: $('r-to').value }; LS.set('sto-range', range); render(); };
+  $('r-from').addEventListener('change', onRange); $('r-to').addEventListener('change', onRange);
+
   /* ---------- wiring ---------- */
-  $('btn-add').addEventListener('click', () => tab === 'exp' ? openExpense(null) : openOrder(null));
-  $('btn-quick-exp').addEventListener('click', () => openExpense(null));
   document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', closeSheets));
   $('scrim').addEventListener('click', closeSheets);
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('scrim').hidden) closeSheets(); });
@@ -1387,8 +1689,6 @@ input::placeholder{color:var(--fg2);opacity:.7}
     const b = e.target.closest('button'); if (!b) return;
     tab = b.dataset.t; LS.set('sto-tab', tab); render(); window.scrollTo(0, 0);
   });
-  $('q').addEventListener('input', e => { query = e.target.value; $('q-clear').hidden = !query; render(); });
-  $('q-clear').addEventListener('click', () => { query = ''; $('q').value = ''; $('q-clear').hidden = true; render(); $('q').focus(); });
   const curSel = $('currency');
   if ([...curSel.options].some(o => o.value === cur)) curSel.value = cur; else cur = '₽';
   curSel.addEventListener('change', () => { cur = curSel.value; LS.set('sto-cur', cur); render(); recalc(); });
