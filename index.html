@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <title>СТО Касса</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -454,6 +454,18 @@ body{padding-block:14px calc(124px + env(safe-area-inset-bottom, 0px))}
   .card.sum .hero{font-size:36px}
 }
 @media (prefers-reduced-motion: reduce){ .pmenu,.pm-cards,.sheet{animation:none} .tabs .plus svg{transition:none} }
+
+/* ---------- v4: nothing moves sideways on iPhone ---------- */
+html,body,.app{overflow-x:clip}
+.sheet{overflow-x:hidden;touch-action:pan-y}
+.sheet input,.sheet select,.pmenu input{max-width:100%;min-width:0}
+input[type=date]{-webkit-appearance:none;appearance:none;display:block;width:100%;box-sizing:border-box;text-align:left;line-height:normal}
+input[type=date]::-webkit-date-and-time-value{text-align:left}
+input[type=date]::-webkit-calendar-picker-indicator{margin-left:auto}
+.pm-range{grid-template-columns:1fr;gap:8px}
+.pm-range label{display:grid;grid-template-columns:28px minmax(0,1fr);align-items:center;gap:8px;font-size:14px}
+/* iPhone zooms into any field with text under 16px and then the page slides sideways */
+@supports (-webkit-touch-callout: none){ input,select,textarea{font-size:16px !important} }
 </style>
 
 <div class="field-bg" aria-hidden="true"><i></i><i></i><i></i></div>
