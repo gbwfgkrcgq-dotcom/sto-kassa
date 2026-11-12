@@ -1,6 +1,6 @@
 // СТО Касса: держит приложение в памяти устройства, чтобы оно открывалось без интернета.
 // Есть сеть — берём свежую версию с сайта, нет сети — открываем сохранённую.
-const CACHE = 'sto-kassa-v5';
+const CACHE = 'sto-kassa-v6';
 const FILES = ['./', './index.html', './icon.png', './manifest.json'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
