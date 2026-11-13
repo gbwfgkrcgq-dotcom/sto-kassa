@@ -450,19 +450,151 @@ input[type=date]::-webkit-calendar-picker-indicator{margin-left:auto}
 .pm-range label{display:grid;grid-template-columns:28px minmax(0,1fr);align-items:center;gap:8px;font-size:14px}
 /* iPhone zooms into any field with text under 16px and then the page slides sideways */
 @supports (-webkit-touch-callout: none){ input,select,textarea{font-size:16px !important} }
+
+/* ---------- v5: variant A, native iOS (large title, inset grouped lists, form sheets) ---------- */
+[hidden]{display:none !important}
+:root{--seg-on:#ffffff;--grouped:#f2f2f7;--cell:#ffffff;--sep:rgba(60,60,67,.18);--label2:rgba(60,60,67,.85);--ios-blue:#007aff;--good:#1d7a35}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--seg-on:#636366;--grouped:#1c1c1e;--cell:#2c2c2e;--sep:rgba(84,84,88,.65);--label2:rgba(235,235,245,.7);--ios-blue:#0a84ff;--good:#34c759}
+}
+:root[data-theme="dark"]{--seg-on:#636366;--grouped:#1c1c1e;--cell:#2c2c2e;--sep:rgba(84,84,88,.65);--label2:rgba(235,235,245,.7);--ios-blue:#0a84ff;--good:#34c759}
+body{padding-top:10px}
+.app{gap:10px}
+.view{gap:10px}
+
+/* header: period left, cloud and blue plus right, large title below */
+.top{display:flex;flex-direction:column;align-items:stretch;gap:10px;padding:0}
+.top-bar{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.top-bar .head-actions{display:flex;gap:10px}
+.period-btn{font-size:15px;color:var(--fg)}
+.pmenu{left:0;right:auto}
+.top-title{padding:4px 4px 0;gap:2px}
+h1{font-size:34px;font-weight:700;letter-spacing:.01em;line-height:1.15}
+.paid-top{font-size:13px;font-weight:400;color:var(--label2)}
+.add-btn{background:var(--ios-blue);color:#fff;box-shadow:0 6px 16px rgba(0,122,255,.35),inset 0 1px 0 rgba(255,255,255,.4)}
+.add-btn svg{width:20px;height:20px;transition:transform .2s}
+.add-btn.open svg{transform:rotate(45deg)}
+.add-btn.off{opacity:.4}
+.pm-cards{bottom:auto;top:calc(64px + env(safe-area-inset-top, 0px))}
+
+/* summary */
+.card.sum{border-radius:22px;padding:14px 16px}
+.sum-orders{row-gap:4px;align-items:end}
+.sum-orders .split{display:none}
+.card.sum .label{font-size:13px;font-weight:400;color:var(--label2)}
+.card.sum .hero{font-size:32px;line-height:1.1}
+.sum-side{font-size:13px;line-height:1.5;gap:0;color:var(--label2)}
+
+/* inset grouped list */
+.day{justify-content:flex-start;gap:0;margin:10px 20px 0;font-size:13px;font-weight:400;letter-spacing:.01em;color:var(--label2)}
+.day span + span::before{content:" · ";white-space:pre}
+.group{border-radius:22px}
+.row{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:12px;padding:11px 16px;position:relative}
+.row + .row{border-top:0}
+.row + .row::before{content:"";position:absolute;top:0;left:68px;right:0;height:1px;background:var(--sep)}
+.row .main{gap:2px}
+.row .car{font-size:17px;font-weight:600}
+.row .meta{display:block;font-size:13px;color:var(--label2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .total{font-size:17px;font-weight:600}
+.row .gain{font-size:13px;font-weight:600;margin-top:1px}
+.av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px}
+
+/* floating tab capsule + separate search circle */
+.dock-in{gap:12px;align-items:center}
+.tabs{grid-template-columns:repeat(3,minmax(0,1fr));padding:4px;border-radius:32px;height:64px}
+.tabs button{height:56px;border-radius:28px;font-size:11px;font-weight:600;color:var(--fg2)}
+.tabs button[aria-current="page"]{background:rgba(0,122,255,.12);color:var(--accent);box-shadow:none}
+.search-btn{flex:none;width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--fg2)}
+.search-btn svg{width:24px;height:24px}
+.search-btn[aria-pressed="true"]{color:var(--accent)}
+.search-btn .desk{display:none}
+
+/* sheets: opaque grouped background, nav with round glass buttons */
+.sheet{background:var(--grouped);-webkit-backdrop-filter:none;backdrop-filter:none;border-radius:38px 38px 0 0;padding-top:0}
+.nav{position:sticky;top:0;z-index:4;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin:0 -16px 4px;padding:14px 16px 8px;background:var(--grouped)}
+.nav h2{grid-column:2;margin:0;font-size:17px;font-weight:600;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav .nav-l{grid-column:1;justify-self:start;color:var(--fg)}
+.nav .nav-r{grid-column:3;justify-self:end;display:flex;gap:8px}
+.nav .round svg{width:18px;height:18px}
+.round.ok{background:var(--ios-blue);color:#fff;box-shadow:0 6px 16px rgba(0,122,255,.35),inset 0 1px 0 rgba(255,255,255,.4)}
+.round.ok svg{width:20px;height:20px}
+.round.ok[disabled]{opacity:.5}
+.photo-btn{width:44px;height:44px;background:none}
+.sheet form{gap:0}
+.hd{margin:0;padding:18px 16px 7px;font-size:13px;font-weight:400;color:var(--label2);text-transform:uppercase;letter-spacing:.01em;display:flex;justify-content:space-between;gap:8px}
+.hd span:last-child{text-transform:none}
+.sec{background:var(--cell);border-radius:16px;overflow:hidden;margin:0}
+.sec .r,.sec .part,.sec .scanbox{position:relative}
+.sec .r::before,.sec .part::before,.sec .scanbox::before{content:"";position:absolute;top:0;left:16px;right:0;height:1px;background:var(--sep)}
+.sec > :first-child::before,.sec > .parts:first-child > .part:first-child::before,.sec > .parts:empty + .r::before{display:none}
+.r{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:46px;padding:0 16px;font-size:17px;color:var(--fg);width:100%;text-align:left}
+.r > span:first-child{flex:none}
+.sheet .sec input:not([type=checkbox]){flex:1 1 auto;width:auto;min-width:0;height:44px;border:0;border-radius:0;background:transparent;padding:0;text-align:right;font-size:17px;color:var(--fg)}
+.sheet .sec input:focus{outline:none}
+.sheet .sec input[type=date]{max-width:60%}
+.sheet .sec input[type=date]::-webkit-date-and-time-value{text-align:right}
+#f-plate{font-weight:600}
+.r.blue{color:var(--accent);font-weight:500;justify-content:flex-start;gap:10px}
+.r.blue svg{width:22px;height:22px;flex:none}
+.r.blue[disabled]{opacity:.5}
+.parts{gap:0}
+.part{grid-template-columns:minmax(0,1fr) 96px 32px;gap:6px;padding:0 8px 0 16px;min-height:46px}
+.part.each{grid-template-columns:minmax(0,1fr) 80px 52px 28px}
+.sheet .sec .part input:not([type=checkbox]){text-align:left}
+.sheet .sec .part input[data-k="c"],.sheet .sec .part input[data-k="m"]{text-align:right}
+.part .x{height:44px;font-size:22px;color:var(--label2)}
+.scanbox{background:none;border-radius:0;padding:10px 16px}
+.sw{font-weight:400;font-size:17px}
+.sw i{background:rgba(120,120,128,.24)}
+.sw input:checked + i{background:#34c759}
+.seg-row{padding:8px 12px}
+.segc{flex:1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) 76px;gap:2px;padding:2px;border-radius:10px;background:rgba(118,118,128,.12)}
+.segc .chip{height:34px;min-width:0;padding:0;border-radius:8px;background:transparent;font-size:14px;font-weight:500;color:var(--fg)}
+.segc .chip[aria-pressed="true"]{background:var(--seg-on);color:var(--fg);font-weight:600;box-shadow:0 3px 8px rgba(0,0,0,.12),0 1px 1px rgba(0,0,0,.04)}
+.segc .pct{margin:0;justify-content:center;gap:2px;font-size:14px;font-weight:500}
+.sheet .sec .segc .pct input{flex:0 1 40px;width:40px;height:34px;text-align:right;font-size:16px}
+.hint{padding:7px 16px 0}
+.calc{padding:0;gap:0}
+.calc .r{font-size:17px}
+.calc dt{color:var(--fg)}
+.calc dd{color:var(--label2);font-weight:400}
+.del{display:block;width:100%;margin-top:28px;min-height:48px;border-radius:16px;background:var(--cell);color:var(--bad);font-size:17px;text-align:center}
+.cats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:12px}
+.cats .chip{min-width:0;height:40px;padding:0 2px;font-size:14px;letter-spacing:-.01em;font-weight:500;background:rgba(118,118,128,.12);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cats .chip[aria-pressed="true"]{background:var(--ios-blue);color:#fff;font-weight:600}
+.totbar{position:sticky;bottom:calc(6px + env(safe-area-inset-bottom, 0px));z-index:4;margin:18px -4px 0;border-radius:24px;padding:12px 16px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;align-items:center;font-variant-numeric:tabular-nums}
+.totbar .tl{font-size:13px;color:var(--label2)}
+.totbar .tp{grid-row:span 2;text-align:right;font-size:13px;color:var(--label2);display:flex;flex-direction:column}
+.totbar .tp b{font-size:17px;color:var(--good)}
+.totbar .tt{font-size:22px;font-weight:700}
+.sheet .btn.soft,.sheet .cur-sel,.sheet input[type=password]{background:var(--cell)}
+.sug{margin:6px 0 0}
+.sec .sug{margin:0;border-radius:0;box-shadow:none;border:0;border-top:1px solid var(--sep)}
+
+@media (min-width:1024px){
+  .dock-in{flex-direction:column;align-items:stretch;gap:12px}
+  .tabs{height:auto;flex:1;grid-template-columns:1fr;grid-auto-rows:min-content;align-content:start;padding:16px;border-radius:28px;gap:6px}
+  .tabs button{height:48px;border-radius:14px}
+  .search-btn{width:auto;height:52px;border-radius:18px;justify-content:flex-start;gap:12px;padding:0 18px;font-size:15px;font-weight:600}
+  .search-btn svg{width:20px;height:20px}
+  .search-btn .desk{display:inline}
+  .sheet{border-radius:28px}
+  .pm-cards{top:24px}
+}
+@media (max-width:360px){
+  .segc{grid-template-columns:repeat(4,minmax(0,1fr)) 64px}
+  .r{font-size:16px}
+}
+@media (prefers-reduced-motion: reduce){ .add-btn svg{transition:none} }
 </style>
 
 <div class="field-bg" aria-hidden="true"><i></i><i></i><i></i></div>
 
 <main class="app">
   <header class="top">
-    <div class="top-title">
-      <h1 id="h-title">СТО Касса</h1>
-      <p class="paid-top" id="paid-top" hidden></p>
-    </div>
-    <div class="head-actions">
+    <div class="top-bar">
+    <div class="head-actions period-wrap">
       <button type="button" class="period-btn glass" id="btn-period" aria-haspopup="true" aria-expanded="false"><span id="period-label">Месяц</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9.5l6 6 6-6"/></svg></button>
-      <button type="button" class="round glass" id="btn-backup" aria-label="Копия и синхронизация" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18.5h10a4 4 0 0 0 .6-7.95A5.5 5.5 0 0 0 7 9.5a4.5 4.5 0 0 0 0 9z"/><path d="M9.5 14l2 2 3.5-3.5"/></svg></button>
       <div class="pmenu glass-strong" id="pmenu" role="dialog" aria-label="Период" hidden>
         <button type="button" data-p="today">Сегодня</button>
         <button type="button" data-p="week">7 дней</button>
@@ -476,6 +608,15 @@ input[type=date]::-webkit-calendar-picker-indicator{margin-left:auto}
         </div>
         <button type="button" class="btn primary" id="pm-apply">Показать</button>
       </div>
+    </div>
+    <div class="head-actions">
+      <button type="button" class="round glass" id="btn-backup" aria-label="Копия и синхронизация" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18.5h10a4 4 0 0 0 .6-7.95A5.5 5.5 0 0 0 7 9.5a4.5 4.5 0 0 0 0 9z"/><path d="M9.5 14l2 2 3.5-3.5"/></svg></button>
+      <button type="button" class="round add-btn" id="btn-plus" aria-label="Новый заказ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+    </div>
+    </div>
+    <div class="top-title">
+      <h1 id="h-title">Заказы</h1>
+      <p class="paid-top" id="paid-top" hidden></p>
     </div>
   </header>
 
@@ -526,10 +667,9 @@ input[type=date]::-webkit-calendar-picker-indicator{margin-left:auto}
     <div class="tabs glass" id="tabs">
       <button type="button" data-t="orders"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l1.6-4.4A2 2 0 0 1 8.5 6.3h7a2 2 0 0 1 1.9 1.3L19 12"/><rect x="3.5" y="12" width="17" height="5.5" rx="1.8"/><path d="M7 17.5v1.5M17 17.5v1.5"/></svg>Заказы</button>
       <button type="button" data-t="exp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="6" width="17" height="12.5" rx="2.5"/><path d="M3.5 10.5h17M7.5 15h3"/></svg>Расходы</button>
-      <button type="button" class="plus" id="btn-plus" aria-label="Добавить заказ или расход" aria-haspopup="true" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span class="desk">Добавить</span></button>
       <button type="button" data-t="stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 19v-6M12 19V6M18 19v-9"/></svg>Аналитика</button>
-      <button type="button" id="btn-search" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg>Поиск</button>
     </div>
+    <button type="button" class="search-btn glass" id="btn-search" aria-pressed="false" aria-label="Поиск"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg><span class="desk">Поиск</span></button>
   </div>
 </nav>
 
@@ -550,99 +690,100 @@ input[type=date]::-webkit-calendar-picker-indicator{margin-left:auto}
 <div class="scrim" id="scrim" hidden></div>
 
 <!-- Заказ -->
-<section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden>
-  <div class="grab" aria-hidden="true"></div>
-  <div class="sheet-head">
+<section class="sheet form-sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden>
+  <div class="nav">
+    <button type="button" class="round glass nav-l" data-close aria-label="Закрыть"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <h2 id="sheet-title">Новый заказ</h2>
-    <div class="head-actions">
-      <button type="button" class="iconbtn photo-btn" id="btn-photo-view" aria-label="Фото чека" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.500A2.500 2.500 0 0 1 6.500 6h1.200l1.200-1.800h6.200L16.300 6h1.200A2.500 2.500 0 0 1 20 8.500v8a2.500 2.500 0 0 1-2.500 2.500h-11A2.500 2.500 0 0 1 4 16.500z"/><circle cx="12" cy="12.500" r="3.400"/></svg></button>
-      <button type="button" class="link" data-close>Закрыть</button>
+    <div class="nav-r">
+      <button type="button" class="round glass photo-btn" id="btn-photo-view" aria-label="Фото чека" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.2l1.2-1.8h6.2L16.3 6h1.2A2.5 2.5 0 0 1 20 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg></button>
+      <button type="submit" form="form" class="round ok" id="btn-save" aria-label="Сохранить заказ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
     </div>
   </div>
   <form id="form" novalidate>
-    <div class="fields" id="veh">
-      <label class="f"><span>Госномер</span><input type="text" id="f-plate" data-veh placeholder="А123ВС 77" autocomplete="off" autocapitalize="characters"></label>
-      <label class="f"><span>Машина</span><input type="text" id="f-car" data-veh placeholder="Toyota Corolla" autocomplete="off"></label>
-      <label class="f"><span>Клиент</span><input type="text" id="f-client" data-veh placeholder="Имя" autocomplete="off"></label>
-      <label class="f"><span>Телефон</span><input type="tel" id="f-phone" data-veh placeholder="+7 900 000-00-00" autocomplete="off" inputmode="tel" maxlength="18"></label>
-      <label class="f wide"><span>Дата</span><input type="date" id="f-date"></label>
+    <h3 class="hd">Машина и клиент</h3>
+    <div class="sec" id="veh">
+      <label class="r"><span>Госномер</span><input type="text" id="f-plate" data-veh placeholder="А123ВС 77" autocomplete="off" autocapitalize="characters"></label>
+      <label class="r"><span>Машина</span><input type="text" id="f-car" data-veh placeholder="Toyota Corolla" autocomplete="off"></label>
+      <label class="r"><span>Клиент</span><input type="text" id="f-client" data-veh placeholder="Имя" autocomplete="off"></label>
+      <label class="r"><span>Телефон</span><input type="tel" id="f-phone" data-veh placeholder="+7 900 000-00-00" autocomplete="off" inputmode="tel" maxlength="18"></label>
+      <label class="r"><span>Дата</span><input type="date" id="f-date"></label>
     </div>
 
-    <div class="block">
-      <div class="cap"><span id="parts-cap">Запчасти: название и цена закупки</span><span id="parts-sum"></span></div>
+    <h3 class="hd cap"><span id="parts-cap">Запчасти · цена закупки</span><span id="parts-sum"></span></h3>
+    <div class="sec">
       <div class="parts" id="parts"></div>
-      <button type="button" class="btn soft" id="btn-photo">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.500A2.500 2.500 0 0 1 6.500 6h1.200l1.200-1.800h6.200L16.300 6h1.200A2.500 2.500 0 0 1 20 8.500v8a2.500 2.500 0 0 1-2.500 2.500h-11A2.500 2.500 0 0 1 4 16.500z"/><circle cx="12" cy="12.500" r="3.400"/></svg>
-        Сфотографировать чек
-      </button>
+      <button type="button" class="r blue" id="btn-photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.2l1.2-1.8h6.2L16.3 6h1.2A2.5 2.5 0 0 1 20 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg>Сфотографировать чек</button>
       <div class="scanbox" id="scanbox" hidden>
         <div class="thumb" id="thumb"><img id="thumb-img" alt="Фото чека"></div>
         <p id="scan-text"></p>
       </div>
     </div>
 
-    <div class="block">
-      <label class="sw"><span>Одна наценка на все позиции</span><input type="checkbox" id="f-same" checked><i aria-hidden="true"></i></label>
-      <div class="chips" id="chips">
-        <button type="button" class="chip" data-m="0">0%</button>
-        <button type="button" class="chip" data-m="10">10%</button>
-        <button type="button" class="chip" data-m="20">20%</button>
-        <button type="button" class="chip" data-m="30">30%</button>
-        <label class="pct"><input type="text" id="f-markup" inputmode="decimal" aria-label="Наценка, процентов"><span>%</span></label>
+    <h3 class="hd">Наценка</h3>
+    <div class="sec">
+      <label class="r sw"><span>Одна на все позиции</span><input type="checkbox" id="f-same" checked><i aria-hidden="true"></i></label>
+      <div class="r seg-row" id="chips">
+        <div class="segc" role="group" aria-label="Наценка">
+          <button type="button" class="chip" data-m="0">0%</button>
+          <button type="button" class="chip" data-m="10">10%</button>
+          <button type="button" class="chip" data-m="20">20%</button>
+          <button type="button" class="chip" data-m="30">30%</button>
+          <label class="pct"><input type="text" id="f-markup" inputmode="decimal" aria-label="Своя наценка, процентов"><span>%</span></label>
+        </div>
       </div>
-      <p class="hint" id="each-hint" hidden>Наценка указывается в каждой строке, в поле с процентом.</p>
+    </div>
+    <p class="hint" id="each-hint" hidden>Наценка указывается в каждой строке, в поле с процентом.</p>
+
+    <h3 class="hd">Работа и мастер</h3>
+    <div class="sec" id="mech">
+      <label class="r"><span>Работа</span><input type="text" id="f-labor" inputmode="decimal" placeholder="0"></label>
+      <label class="r"><span>Мастер</span><input type="text" id="f-mech" placeholder="Имя" autocomplete="off"></label>
+      <label class="r"><span>Мастеру, % от работы</span><input type="text" id="f-mech-pct" inputmode="decimal" placeholder="0"></label>
     </div>
 
-    <label class="f"><span>Работа, стоимость для клиента</span><input type="text" id="f-labor" inputmode="decimal" placeholder="0"></label>
-
-    <div class="fields" id="mech">
-      <label class="f"><span>Мастер</span><input type="text" id="f-mech" placeholder="Имя" autocomplete="off"></label>
-      <label class="f"><span>Мастеру от работы, %</span><input type="text" id="f-mech-pct" inputmode="decimal" placeholder="0"></label>
-    </div>
-
-    <dl class="calc" aria-live="polite">
-      <div><dt>Запчасти, закупка</dt><dd id="c-cost">0</dd></div>
-      <div><dt id="c-markup-label">Наценка</dt><dd id="c-markup">0</dd></div>
-      <div><dt>Работа</dt><dd id="c-labor">0</dd></div>
-      <div class="big"><dt>Итого с клиента</dt><dd id="c-total">0</dd></div>
-      <div><dt id="c-mech-label">Мастеру</dt><dd id="c-mech">0</dd></div>
-      <div class="big net"><dt>Чистая прибыль</dt><dd id="c-profit">0</dd></div>
+    <h3 class="hd">Расчёт</h3>
+    <dl class="sec calc" aria-live="polite">
+      <div class="r"><dt>Запчасти, закупка</dt><dd id="c-cost">0</dd></div>
+      <div class="r"><dt id="c-markup-label">Наценка</dt><dd id="c-markup">0</dd></div>
+      <div class="r"><dt>Работа</dt><dd id="c-labor">0</dd></div>
+      <div class="r"><dt id="c-mech-label">Мастеру</dt><dd id="c-mech">0</dd></div>
     </dl>
 
-    <button type="submit" class="btn primary" id="btn-save">Сохранить</button>
-    <button type="button" class="btn danger" id="btn-delete" hidden>Удалить заказ</button>
+    <button type="button" class="del" id="btn-delete" hidden>Удалить заказ</button>
   </form>
+  <div class="totbar glass" aria-live="polite">
+    <span class="tl">С клиента</span>
+    <span class="tp">Прибыль<b id="c-profit">0</b></span>
+    <b class="tt" id="c-total">0</b>
+  </div>
 </section>
 
 <!-- Расход -->
-<section class="sheet" id="esheet" role="dialog" aria-modal="true" aria-labelledby="esheet-title" hidden>
-  <div class="grab" aria-hidden="true"></div>
-  <div class="sheet-head">
+<section class="sheet form-sheet" id="esheet" role="dialog" aria-modal="true" aria-labelledby="esheet-title" hidden>
+  <div class="nav">
+    <button type="button" class="round glass nav-l" data-close aria-label="Закрыть"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <h2 id="esheet-title">Новый расход</h2>
-    <button type="button" class="link" data-close>Закрыть</button>
+    <div class="nav-r"><button type="submit" form="eform" class="round ok" id="e-save" aria-label="Сохранить расход"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button></div>
   </div>
   <form id="eform" novalidate>
-    <div class="block">
-      <div class="cap"><span>Статья расхода</span></div>
-      <div class="chips" id="e-cats"></div>
-      <p class="hint" id="e-hint" hidden>Процент мастеров с заказов уже учтён автоматически. Сюда вносите только оклады и премии.</p>
+    <h3 class="hd">Статья</h3>
+    <div class="sec"><div class="cats" id="e-cats"></div></div>
+    <p class="hint" id="e-hint" hidden>Процент мастеров с заказов уже учтён автоматически. Сюда вносите только оклады и премии.</p>
+    <h3 class="hd">Расход</h3>
+    <div class="sec">
+      <label class="r"><span>Сумма</span><input type="text" id="e-amount" inputmode="decimal" placeholder="0"></label>
+      <label class="r"><span>Дата</span><input type="date" id="e-date"></label>
+      <label class="r"><span>Комментарий</span><input type="text" id="e-note" placeholder="Аренда за ноябрь" autocomplete="off"></label>
     </div>
-    <div class="fields">
-      <label class="f"><span>Сумма</span><input type="text" id="e-amount" inputmode="decimal" placeholder="0"></label>
-      <label class="f"><span>Дата</span><input type="date" id="e-date"></label>
-      <label class="f wide"><span>Комментарий</span><input type="text" id="e-note" placeholder="Например, аренда бокса за ноябрь" autocomplete="off"></label>
-    </div>
-    <button type="submit" class="btn primary" id="e-save">Сохранить</button>
-    <button type="button" class="btn danger" id="e-delete" hidden>Удалить расход</button>
+    <button type="button" class="del" id="e-delete" hidden>Удалить расход</button>
   </form>
 </section>
 
 <!-- Резервная копия -->
 <section class="sheet" id="bsheet" role="dialog" aria-modal="true" aria-labelledby="bsheet-title" hidden>
-  <div class="grab" aria-hidden="true"></div>
-  <div class="sheet-head">
+    <div class="nav">
+    <button type="button" class="round glass nav-l" data-close aria-label="Закрыть"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <h2 id="bsheet-title">Копия и синхронизация</h2>
-    <button type="button" class="link" data-close>Закрыть</button>
   </div>
   <div class="block" style="gap:14px">
     <p class="btext">Все заказы и расходы хранятся только на этом устройстве. Копия в файле спасёт их, если телефон потеряется или данные браузера очистятся.</p>
@@ -674,8 +815,7 @@ input[type=date]::-webkit-calendar-picker-indicator{margin-left:auto}
 
 <!-- Фото чека: вопрос после сохранения -->
 <section class="sheet" id="psheet" role="dialog" aria-modal="true" aria-labelledby="psheet-title" hidden>
-  <div class="grab" aria-hidden="true"></div>
-  <div class="sheet-head"><h2 id="psheet-title">Заказ сохранён</h2></div>
+    <div class="nav"><h2 id="psheet-title">Заказ сохранён</h2></div>
   <div class="block" style="gap:12px">
     <p class="btext">Прикрепить к заказу фото чека на запчасти?</p>
     <button type="button" class="btn primary" id="p-cam">Сфотографировать чек</button>
@@ -686,10 +826,9 @@ input[type=date]::-webkit-calendar-picker-indicator{margin-left:auto}
 
 <!-- Фото чека: просмотр -->
 <section class="sheet" id="vsheet" role="dialog" aria-modal="true" aria-labelledby="vsheet-title" hidden>
-  <div class="grab" aria-hidden="true"></div>
-  <div class="sheet-head">
+    <div class="nav">
+    <button type="button" class="round glass nav-l" id="v-close" aria-label="Закрыть"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <h2 id="vsheet-title">Фото чека</h2>
-    <button type="button" class="link" id="v-close">Закрыть</button>
   </div>
   <div class="block" style="gap:12px">
     <div class="photo-box"><img id="v-img" alt="Фото чека" hidden><p class="btext" id="v-msg"></p></div>
@@ -734,7 +873,7 @@ input[type=date]::-webkit-calendar-picker-indicator{margin-left:auto}
     return a && b ? 'с ' + a + ' по ' + b : a ? 'с ' + a : b ? 'по ' + b : 'за всё время';
   }
   const CATS = ['Аренда', 'Зарплата', 'Расходники', 'Инструмент', 'Коммуналка', 'Прочее'];
-  const EYEBROW = { orders: 'СТО Касса', exp: 'Расходы', stats: 'Аналитика' };
+  const EYEBROW = { orders: 'Заказы', exp: 'Расходы', stats: 'Аналитика' };
   const PERIOD_SHORT = { today: 'Сегодня', week: '7 дней', month: 'Месяц', all: 'Всё время' };
 
   let orders = [], expenses = [];
@@ -798,6 +937,7 @@ input[type=date]::-webkit-calendar-picker-indicator{margin-left:auto}
     $('view-exp').hidden = tab !== 'exp';
     $('view-stats').hidden = tab !== 'stats';
     $('h-title').textContent = EYEBROW[tab];
+    $('btn-plus').setAttribute('aria-label', tab === 'orders' ? 'Новый заказ' : tab === 'exp' ? 'Новый расход' : 'Добавить заказ или расход');
     $('period-label').textContent = periodShort();
     document.querySelectorAll('#pmenu [data-p]').forEach(b => b.setAttribute('aria-current', String(b.dataset.p === period)));
     $('search-bar').hidden = !searching;
@@ -809,6 +949,12 @@ input[type=date]::-webkit-calendar-picker-indicator{margin-left:auto}
     else renderStats(data);
   }
 
+  const AV = ['#0a62d0', '#5a48c8', '#1d7a35', '#b05409', '#c4314b', '#0f7383'];
+  function avatar(name, color){
+    const t = String(name || '').trim(), ch = t ? t[0].toUpperCase() : '•';
+    let h = 0; for (const c of t) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+    return '<span class="av" aria-hidden="true" style="background:' + (color || AV[h % AV.length]) + '">' + esc(ch) + '</span>';
+  }
   function emptyBox(title, text){ return '<div class="empty glass"><strong>' + esc(title) + '</strong>' + esc(text) + '</div>'; }
 
   function renderOrders({ t, os }){
@@ -835,7 +981,7 @@ input[type=date]::-webkit-calendar-picker-indicator{margin-left:auto}
     if (!shown.length){
       list.innerHTML = words.length ? emptyBox('Ничего не найдено', 'Поиск идёт по всем заказам за всё время: номер, машина, клиент, телефон, мастер, запчасть.')
         : orders.length ? emptyBox('За этот период заказов нет', 'Выберите другой период или добавьте заказ.')
-        : emptyBox('Заказов пока нет', 'Нажмите плюс внизу, чтобы добавить первый заказ. Здесь появятся машины, суммы и прибыль.');
+        : emptyBox('Заказов пока нет', 'Нажмите синий плюс вверху, чтобы добавить первый заказ. Здесь появятся машины, суммы и прибыль.');
       return;
     }
     const groups = new Map();
@@ -846,13 +992,11 @@ input[type=date]::-webkit-calendar-picker-indicator{margin-left:auto}
       html += '<div class="day"><span>' + esc(dayLabel(d)) + '</span><span>+' + esc(money(dayProfit)) + '</span></div><div class="group glass">';
       for (const o of items){
         const c = calc(o);
-        html += '<button type="button" class="row" data-id="' + esc(o.id) + '">'
-          + '<span class="main"><span class="car">' + esc(o.car || o.plate || 'Без названия') + '</span>'
-          + '<span class="meta">' + (o.plate ? '<span class="plate">' + esc(o.plate) + '</span>' : '')
-          + (o.client ? '<span>' + esc(o.client) + '</span>' : '')
-          + (o.mechanic ? '<span>мастер ' + esc(o.mechanic) + '</span>' : '')
-          + (o.receipt ? '<span class="pill">чек</span>' : '') + (o.demo ? '<span class="pill">пример</span>' : '')
-          + '</span></span>'
+        const title = o.car || o.plate || 'Без названия';
+        const meta = [o.car ? o.plate : '', o.client, o.mechanic ? 'мастер ' + o.mechanic : '', o.photo || o.receipt ? 'с чеком' : '', o.demo ? 'пример' : ''].filter(Boolean).join(' · ');
+        html += '<button type="button" class="row" data-id="' + esc(o.id) + '">' + avatar(title)
+          + '<span class="main"><span class="car">' + esc(title) + '</span>'
+          + (meta ? '<span class="meta">' + esc(meta) + '</span>' : '') + '</span>'
           + '<span class="sum"><span class="total">' + esc(money(c.total)) + '</span><div class="gain">+' + esc(money(c.profit)) + '</div></span>'
           + '</button>';
       }
@@ -883,7 +1027,7 @@ input[type=date]::-webkit-calendar-picker-indicator{margin-left:auto}
     const shown = es.slice().sort(byDateDesc);
     if (!shown.length){
       list.innerHTML = expenses.length ? emptyBox('За этот период расходов нет', 'Выберите другой период или добавьте расход.')
-        : emptyBox('Расходов пока нет', 'Нажмите плюс внизу и внесите аренду, оклады или расходники. Они вычтутся из прибыли.');
+        : emptyBox('Расходов пока нет', 'Нажмите синий плюс вверху и внесите аренду, оклады или расходники. Они вычтутся из прибыли.');
       return;
     }
     const groups = new Map();
@@ -892,8 +1036,9 @@ input[type=date]::-webkit-calendar-picker-indicator{margin-left:auto}
     for (const [d, items] of groups){
       html += '<div class="day"><span>' + esc(dayLabel(d)) + '</span><span>' + esc(money(items.reduce((s, e) => s + num(e.amount), 0))) + '</span></div><div class="group glass">';
       for (const e of items){
-        html += '<button type="button" class="row" data-eid="' + esc(e.id) + '"><span class="main"><span class="car">' + esc(e.cat || 'Прочее') + '</span>'
-          + '<span class="meta">' + (e.note ? '<span>' + esc(e.note) + '</span>' : '') + (e.demo ? '<span class="pill">пример</span>' : '') + '</span></span>'
+        const meta = [e.note, e.demo ? 'пример' : ''].filter(Boolean).join(' · ');
+        html += '<button type="button" class="row" data-eid="' + esc(e.id) + '">' + avatar(e.cat || 'Прочее', 'var(--warm)') + '<span class="main"><span class="car">' + esc(e.cat || 'Прочее') + '</span>'
+          + (meta ? '<span class="meta">' + esc(meta) + '</span>' : '') + '</span>'
           + '<span class="sum"><span class="total">' + esc(money(num(e.amount))) + '</span></span></button>';
       }
       html += '</div>';
@@ -1438,13 +1583,13 @@ input[type=date]::-webkit-calendar-picker-indicator{margin-left:auto}
     hideSug();
     const each = draft.markupMode === 'each';
     $('parts').innerHTML = draft.parts.map(partRow).join('');
-    $('parts-cap').textContent = each ? 'Запчасти: название, закупка, наценка %' : 'Запчасти: название и цена закупки';
+    $('parts-cap').textContent = each ? 'Запчасти · закупка и наценка' : 'Запчасти · цена закупки';
     $('chips').hidden = each; $('each-hint').hidden = !each;
   }
   function recalc(){
     if (!draft) return;
     const c = calc(draft), each = draft.markupMode === 'each';
-    $('parts-sum').textContent = c.cost ? money(c.cost) : '';
+    $('parts-sum').textContent = c.cost ? 'всего ' + money(c.cost) : '';
     $('c-cost').textContent = money(c.cost);
     $('c-markup-label').textContent = each ? 'Наценка по позициям' : 'Наценка +' + pctText(num(draft.markup));
     $('c-markup').textContent = '+' + money(c.markup);
@@ -1758,7 +1903,11 @@ input[type=date]::-webkit-calendar-picker-indicator{margin-left:auto}
   function closePlus(){ $('plusmenu').hidden = true; $('btn-plus').classList.remove('open'); $('btn-plus').setAttribute('aria-expanded', 'false'); }
   function openPeriod(){ closePlus(); $('r-from').value = range.from; $('r-to').value = range.to; $('pmenu').hidden = false; $('btn-period').setAttribute('aria-expanded', 'true'); }
   function closePeriod(){ $('pmenu').hidden = true; $('btn-period').setAttribute('aria-expanded', 'false'); }
-  $('btn-plus').addEventListener('click', () => { if (!$('plusmenu').hidden) closePlus(); else if (guard()) openPlus(); });
+  $('btn-plus').addEventListener('click', () => {
+    if (!$('plusmenu').hidden){ closePlus(); return; }
+    if (!guard()) return;
+    if (tab === 'orders') openOrder(null); else if (tab === 'exp') openExpense(null); else openPlus();
+  });
   $('pm-scrim').addEventListener('click', closePlus);
   $('pm-order').addEventListener('click', () => { closePlus(); openOrder(null); });
   $('pm-exp').addEventListener('click', () => { closePlus(); openExpense(null); });
