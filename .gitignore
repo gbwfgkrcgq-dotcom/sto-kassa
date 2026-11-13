@@ -1,1 +1,3 @@
 .claude/
+deploy-key.php
+*.key
